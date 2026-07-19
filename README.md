@@ -9,6 +9,7 @@ Este repositorio es mi base de operaciones para aprender a invertir y generar in
 | [`guia/01-antes-de-invertir.md`](guia/01-antes-de-invertir.md) | Fundamentos: qué hacer ANTES de poner un solo peso/dólar en el mercado |
 | [`guia/02-instrumentos.md`](guia/02-instrumentos.md) | Acciones, ETFs, futuros, criptomonedas — qué son, riesgos y para quién son |
 | [`guia/03-plan-principiante.md`](guia/03-plan-principiante.md) | Plan de acción paso a paso para empezar |
+| [`guia/04-plan-colombia.md`](guia/04-plan-colombia.md) | Plan adaptado a Colombia: brokers, ETFs UCITS, impuestos, fondo de emergencia en COP |
 | [`diario/`](diario/) | Diario de inversión: cada decisión queda registrada con su razón |
 
 ## Cómo usar este repo
