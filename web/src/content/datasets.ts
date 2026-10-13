@@ -81,10 +81,28 @@ export function climaCsv(): string {
   return toCsv(["fecha", "temperatura", "lluvia_mm"], rows);
 }
 
+export function clientesCsv(): string {
+  const r = rng(909);
+  const contratos = ["mensual", "anual", "bianual"];
+  const rows: (string | number | null)[][] = [];
+  for (let i = 1; i <= 1200; i++) {
+    const contrato = contratos[r.next() < 0.55 ? 0 : r.next() < 0.6 ? 1 : 2];
+    const antiguedad = Math.max(1, Math.round(contrato === "mensual" ? r.exponential(1 / 14) : r.normal(36, 14)));
+    const cuota = r2(Math.max(15, r.normal(contrato === "mensual" ? 72 : 60, 18)));
+    const llamadas = r.poisson(contrato === "mensual" ? 2.2 : 1.2);
+    const fibra = r.next() < 0.45 ? 1 : 0;
+    const z = -2.6 + (contrato === "mensual" ? 1.6 : contrato === "anual" ? 0.2 : -0.6) - 0.035 * antiguedad + 0.018 * (cuota - 60) + 0.38 * llamadas + 0.35 * fibra;
+    const baja = r.next() < 1 / (1 + Math.exp(-z)) ? 1 : 0;
+    rows.push([i, contrato, antiguedad, cuota, llamadas, fibra, r.next() < 0.02 ? null : r2(cuota * antiguedad), baja]);
+  }
+  return toCsv(["cliente", "contrato", "antiguedad_meses", "cuota_mensual", "llamadas_soporte", "fibra", "gasto_total", "baja"], rows);
+}
+
 export const DATASETS = [
   { file: "ventas.csv", title: "Ventas de la tienda del reino", make: ventasCsv, description: "Pedidos de 120 días: región, producto, unidades y precio. Contiene faltantes, duplicados, etiquetas inconsistentes y un atípico." },
   { file: "pacientes.csv", title: "Ensayo clínico sintético", make: pacientesCsv, description: "160 pacientes asignados alternadamente a control o tratamiento; presión arterial sistólica antes y después, y un evento binario. Datos inventados con fines educativos." },
   { file: "estudiantes.csv", title: "Rendimiento de estudiantes", make: estudiantesCsv, description: "Horas de estudio, asistencia, nota previa y nota final de 200 estudiantes ficticios." },
+  { file: "clientes.csv", title: "Bajas de clientes", make: clientesCsv, description: "1200 clientes ficticios de una compañía de telecomunicaciones: contrato, antigüedad, cuota, llamadas a soporte y si se dieron de baja (clase minoritaria)." },
   { file: "clima.csv", title: "Clima diario", make: climaCsv, description: "Temperatura y lluvia diarias de un año en una ciudad imaginaria, con estacionalidad." },
 ] as const;
 
