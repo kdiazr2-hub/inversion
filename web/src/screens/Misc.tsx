@@ -339,7 +339,7 @@ export function Certificates() {
                   className="btn-gold text-sm"
                   disabled={!can}
                   onClick={() => {
-                    update((s) => A.issueCertificate(s, w.id));
+                    update((s) => A.issueCertificate(s, CONTENT, w.id));
                     toast("Certificado emitido.", "good");
                   }}
                 >

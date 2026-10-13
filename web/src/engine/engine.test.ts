@@ -216,12 +216,32 @@ describe("certificates", () => {
     let s = A.setProfile(newSave(T0), "Ada", { skin: 1, hair: "corto", hairColor: "#000", outfit: "tunica", outfitColor: "#00f", pet: null, frame: null });
     s = A.recordCheck(s, content, a, pass, {}, T0);
     s = A.recordCheck(s, content, b, pass, {}, T0);
-    s = A.issueCertificate(s, "w1", T0);
+    s = A.issueCertificate(s, content, "w1", T0);
     const id = await certificateId(s, content, "w1");
     expect(id).toMatch(/^PQ-[0-9A-F]{4}-[0-9A-F]{4}-[0-9A-F]{4}$/);
     expect(await verifyCertificate(s, content, id!.toLowerCase())).toBe("w1");
     const tampered = structuredClone(s);
     tampered.certificates.w1.name = "Otra";
     expect(await verifyCertificate(tampered, content, id!)).toBeNull();
+  });
+
+  it("is only issued for a complete route", () => {
+    let s = A.setProfile(newSave(T0), "Ada", { skin: 1, hair: "corto", hairColor: "#000", outfit: "tunica", outfitColor: "#00f", pet: null, frame: null });
+    s = A.recordCheck(s, content, a, pass, {}, T0);
+    expect(A.issueCertificate(s, content, "w1", T0).certificates).toEqual({});
+  });
+
+  it("stays valid when missions are added to the route later", async () => {
+    let s = A.setProfile(newSave(T0), "Ada", { skin: 1, hair: "corto", hairColor: "#000", outfit: "tunica", outfitColor: "#00f", pet: null, frame: null });
+    s = A.recordCheck(s, content, a, pass, {}, T0);
+    s = A.recordCheck(s, content, b, pass, {}, T0);
+    s = A.issueCertificate(s, content, "w1", T0);
+    const id = await certificateId(s, content, "w1");
+    const grown = { ...content, missions: [...content.missions, mk("nueva", "w1", ["b"])] };
+    const r = importSave(exportSave(s), grown);
+    expect(r.ok).toBe(true);
+    expect(r.state!.certificates.w1).toBeDefined();
+    expect(await certificateId(r.state!, grown, "w1")).toBe(id);
+    expect(await verifyCertificate(r.state!, grown, id!)).toBe("w1");
   });
 });

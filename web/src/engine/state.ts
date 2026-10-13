@@ -86,7 +86,15 @@ export const SaveSchema = z.object({
   owned: z.array(z.string().max(32)).max(200),
   labs: z.record(z.string().max(32), z.number().int().min(0)),
   placement: z.object({ at: isoTime, worlds: z.array(z.string().max(4)) }).nullable(),
-  certificates: z.record(z.string().max(4), z.object({ issuedAt: isoTime, name: z.string().max(40) })),
+  certificates: z.record(
+    z.string().max(4),
+    z.object({
+      issuedAt: isoTime,
+      name: z.string().max(40),
+      /** Missions of the route when it was issued: adding content later must not invalidate it. */
+      missions: z.array(z.string().max(64)).max(1000).optional(),
+    }),
+  ),
   settings: SettingsSchema,
   totalRuns: z.number().int().min(0),
 });

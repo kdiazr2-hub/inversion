@@ -9,11 +9,16 @@ import type { SaveState } from "./state";
 export function certificatePayload(s: SaveState, content: Content, world: WorldId): string | null {
   const cert = s.certificates[world];
   if (!cert) return null;
-  const missions = content.missions
-    .filter((m) => m.world === world)
-    .map((m) => `${m.id}@${s.missions[m.id]?.done ?? "-"}`)
+  const missions = certificateMissions(s, content, world)
+    .map((id) => `${id}@${s.missions[id]?.done ?? "-"}`)
     .join(",");
   return ["python-quest", "v1", cert.name, world, cert.issuedAt, missions].join("|");
+}
+
+/** Missions the certificate covers: those of the route when it was issued (older saves: the current route). */
+export function certificateMissions(s: SaveState, content: Content, world: WorldId): string[] {
+  const stored = s.certificates[world]?.missions;
+  return stored ?? content.missions.filter((m) => m.world === world).map((m) => m.id);
 }
 
 async function sha256Hex(text: string): Promise<string> {

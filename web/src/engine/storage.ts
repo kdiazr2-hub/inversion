@@ -1,7 +1,9 @@
 // Guest-mode persistence (localStorage) plus validated JSON export/import.
 import { CATALOG_IDS } from "./actions";
 import { itemById } from "./catalog";
-import { type Content, summarize, worldProgress } from "./derive";
+import type { WorldId } from "../content/types";
+import { certificateMissions } from "./certificates";
+import { type Content, summarize } from "./derive";
 import { newSave, SaveSchema, type SaveState } from "./state";
 
 export const STORAGE_KEY = "python-quest-save-v1";
@@ -61,8 +63,9 @@ export function sanitize(raw: unknown, content: Content, now = new Date()): Impo
   }
 
   for (const w of Object.keys(s.certificates)) {
-    const p = worldProgress(s, content.missions, w as never);
-    if (p.total === 0 || p.done < p.total) {
+    // Missions removed from the curriculum since issuing are not required any more.
+    const required = certificateMissions(s, content, w as WorldId).filter((id) => known.has(id));
+    if (required.length === 0 || !required.every(isDone)) {
       delete s.certificates[w];
       warnings.push(`Se retiró el certificado del mundo ${w}: la ruta no está completa.`);
     }

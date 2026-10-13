@@ -163,9 +163,11 @@ export function setPlacement(s: SaveState, worlds: string[], now = new Date()): 
   return { ...s, placement: { at: now.toISOString(), worlds } };
 }
 
-export function issueCertificate(s: SaveState, worldId: string, now = new Date()): SaveState {
+export function issueCertificate(s: SaveState, content: Content, worldId: string, now = new Date()): SaveState {
   if (!s.profile || s.certificates[worldId]) return s;
-  return { ...s, certificates: { ...s.certificates, [worldId]: { issuedAt: now.toISOString(), name: s.profile.name } } };
+  const missions = content.missions.filter((m) => m.world === worldId).map((m) => m.id);
+  if (!missions.length || !missions.every((id) => s.missions[id]?.done)) return s;
+  return { ...s, certificates: { ...s.certificates, [worldId]: { issuedAt: now.toISOString(), name: s.profile.name, missions } } };
 }
 
 export const CATALOG_IDS = new Set(CATALOG.map((i) => i.id));
