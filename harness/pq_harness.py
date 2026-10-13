@@ -200,7 +200,7 @@ def _close_figures():
 # Scientific packages take seconds to import the first time (pandas ≈ 3 s, scikit-learn ≈ 3 s
 # in Pyodide). Importing them before the run lets the infinite-loop clock measure only the
 # learner's code.
-HEAVY_PACKAGES = ("numpy", "pandas", "scipy", "sklearn", "statsmodels", "matplotlib", "seaborn")
+HEAVY_PACKAGES = ("numpy", "pandas", "scipy", "sklearn", "statsmodels", "matplotlib", "seaborn", "networkx", "pydantic")
 
 
 def warm_imports(names):

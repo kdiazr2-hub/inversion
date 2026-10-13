@@ -219,6 +219,113 @@ export function viviendasCsv(): string {
   return toCsv(["id", "barrio", "superficie_m2", "habitaciones", "banos", "antiguedad", "planta", "ascensor", "distancia_centro_km", "precio_miles"], rows);
 }
 
+/** Customer messages for text classification (Spanish, no commas so the CSV needs no quoting). */
+export function mensajesCsv(): string {
+  const r = rng(2718);
+  const plantillas: Record<string, string[]> = {
+    facturacion: [
+      "me han cobrado dos veces el mismo pedido",
+      "la factura tiene un importe incorrecto",
+      "necesito la factura con mis datos fiscales",
+      "no reconozco un cargo en mi tarjeta",
+      "el precio cobrado no coincide con el anunciado",
+      "quiero un duplicado de la factura",
+      "me cobraron gastos de envío que no correspondían",
+      "el reembolso no aparece en mi cuenta bancaria",
+      "el descuento no se aplicó al pagar",
+    ],
+    envio: [
+      "mi pedido no ha llegado todavía",
+      "el paquete lleva una semana en reparto",
+      "el repartidor dejó el paquete en otra dirección",
+      "quiero cambiar la dirección de entrega",
+      "el seguimiento del envío no se actualiza",
+      "¿cuándo llegará mi pedido?",
+      "el envío llegó con mucho retraso",
+      "el transportista no pasó a la hora acordada",
+      "me dicen que el paquete fue entregado pero no lo tengo",
+    ],
+    defecto: [
+      "el producto llegó roto",
+      "la espada vino doblada y no sirve",
+      "el mapa tiene páginas rotas",
+      "la poción estaba abierta y derramada",
+      "el escudo tiene una grieta enorme",
+      "quiero devolver un artículo defectuoso",
+      "el producto no funciona desde el primer día",
+      "faltan piezas en la caja del pedido",
+    ],
+    cuenta: [
+      "no puedo iniciar sesión en mi cuenta",
+      "olvidé mi contraseña y no puedo entrar",
+      "quiero cambiar el correo de mi cuenta",
+      "me han bloqueado la cuenta sin motivo",
+      "quiero borrar mi cuenta y mis datos personales",
+      "no me llega el correo de verificación",
+    ],
+  };
+  const pesos: [string, number][] = [["envio", 0.35], ["facturacion", 0.3], ["defecto", 0.22], ["cuenta", 0.13]];
+  const saludos = ["hola", "buenos días", "buenas tardes", "", "", "por favor ayuda", "urgente"];
+  const despedidas = ["gracias", "un saludo", "espero respuesta pronto", "", "", "es la segunda vez que escribo", "estoy muy molesto"];
+  const categorias = Object.keys(plantillas);
+  const sinonimos: Record<string, string[]> = {
+    pedido: ["pedido", "compra", "encargo"],
+    paquete: ["paquete", "bulto"],
+    roto: ["roto", "dañado", "estropeado"],
+    cobrado: ["cobrado", "cargado"],
+    factura: ["factura", "fra"],
+    llegado: ["llegado", "aparecido"],
+    correo: ["correo", "email", "e-mail"],
+    contraseña: ["contraseña", "clave"],
+  };
+  const pistas: Record<string, string[]> = {
+    facturacion: ["el pago", "el cobro", "la factura"],
+    envio: ["la entrega", "el reparto", "el envío"],
+    defecto: ["el artículo", "lo que compré", "el producto"],
+    cuenta: ["mi usuario", "el acceso", "mi perfil"],
+  };
+  const rows: (string | number)[][] = [];
+  for (let i = 1; i <= 900; i++) {
+    let u = r.next();
+    let cat = pesos[pesos.length - 1][0];
+    for (const [c, w] of pesos) {
+      if (u < w) {
+        cat = c;
+        break;
+      }
+      u -= w;
+    }
+    const frases = plantillas[cat];
+    const v = r.next();
+    let cuerpo: string;
+    if (v < 0.12) {
+      // Vague message: the category is only hinted at by one word.
+      cuerpo = `tengo un problema con ${pistas[cat][r.int(0, pistas[cat].length - 1)]}`;
+    } else {
+      let palabras = frases[r.int(0, frases.length - 1)].split(" ").map((w) => {
+        const alt = sinonimos[w];
+        return alt && r.next() < 0.5 ? alt[r.int(0, alt.length - 1)] : w;
+      });
+      if (r.next() < 0.15 && palabras.length > 4) palabras.splice(r.int(1, palabras.length - 2), 1); // a dropped word
+      if (r.next() < 0.3) palabras.push("pedido", String(r.int(1000, 9999)));
+      cuerpo = palabras.join(" ");
+      if (v > 0.82) {
+        // Two topics in one message; the label is the main (first) one.
+        const otra = categorias.filter((c) => c !== cat)[r.int(0, 2)];
+        cuerpo += ` y además ${plantillas[otra][r.int(0, plantillas[otra].length - 1)]}`;
+      }
+    }
+    let texto = [saludos[r.int(0, saludos.length - 1)], cuerpo, despedidas[r.int(0, despedidas.length - 1)]].filter(Boolean).join(". ");
+    if (r.next() < 0.2) texto = texto.toUpperCase();
+    else texto = texto.charAt(0).toUpperCase() + texto.slice(1);
+    if (r.next() < 0.15) texto += "!!!";
+    // 3 % of labels are wrong, as in real annotated data.
+    const etiqueta = r.next() < 0.03 ? categorias[r.int(0, categorias.length - 1)] : cat;
+    rows.push([i, texto, etiqueta]);
+  }
+  return toCsv(["id", "texto", "categoria"], rows);
+}
+
 export const DATASETS = [
   { file: "ventas.csv", title: "Ventas de la tienda del reino", make: ventasCsv, description: "Pedidos de 120 días: región, producto, unidades y precio. Contiene faltantes, duplicados, etiquetas inconsistentes y un atípico." },
   { file: "pacientes.csv", title: "Ensayo clínico sintético", make: pacientesCsv, description: "160 pacientes asignados alternadamente a control o tratamiento; presión arterial sistólica antes y después, y un evento binario. Datos inventados con fines educativos." },
@@ -228,6 +335,7 @@ export const DATASETS = [
   { file: "sensores.csv", title: "Sensores de temperatura", make: sensoresCsv, description: "Lecturas horarias de dos sensores durante 60 días, con mensajes perdidos, duplicados, desordenados, lecturas «ERR» y anomalías (picos, sensor atascado, valores raros para la hora)." },
   { file: "sensores_etiquetas.csv", title: "Etiquetas de anomalías", make: sensoresEtiquetasCsv, description: "Para cada hora y sensor, si la lectura era una anomalía real. Solo para evaluar detectores." },
   { file: "viviendas.csv", title: "Precios de viviendas", make: viviendasCsv, description: "1500 viviendas ficticias: barrio, superficie, habitaciones, baños, antigüedad, planta, ascensor, distancia al centro y precio (miles de euros). Con faltantes y algunos errores de tecleo." },
+  { file: "mensajes.csv", title: "Mensajes de clientes", make: mensajesCsv, description: "900 mensajes ficticios a la tienda del reino, etiquetados como facturación, envío, producto defectuoso o cuenta (clases desequilibradas y un 3 % de etiquetas erróneas)." },
   { file: "clima.csv", title: "Clima diario", make: climaCsv, description: "Temperatura y lluvia diarias de un año en una ciudad imaginaria, con estacionalidad." },
 ] as const;
 

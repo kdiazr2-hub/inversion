@@ -34,7 +34,7 @@ def pq_run(payload):
 // Packages that live on PyPI rather than in the Pyodide distribution.
 const MICROPIP = ["seaborn"];
 const installed = new Set<string>();
-const HEAVY = /^(numpy|pandas|scipy|sklearn|statsmodels|matplotlib|seaborn)(\.|$)/;
+const HEAVY = /^(numpy|pandas|scipy|sklearn|statsmodels|matplotlib|seaborn|networkx|pydantic)(\.|$)/;
 const warmed = new Set<string>();
 
 async function run(msg: Extract<WorkerIn, { kind: "run" }>) {
