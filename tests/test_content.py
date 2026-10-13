@@ -105,3 +105,45 @@ def test_catalog(content):
             assert pos[r] < pos[m["id"]], f"{m['id']} requiere {r}, que aparece después"
     solutions = [m["solution"].strip() for m in ms]
     assert len(solutions) == len(set(solutions)), "Hay misiones duplicadas"
+
+
+def _stage(content, series_id, n):
+    return next(m for m in content["missions"] if (m.get("series") or {}).get("id") == series_id and m["series"]["stage"] == n)
+
+
+def test_series_stage(mission, content):
+    """A stage continues the previous one: carried code + new skeleton must not pass yet,
+    the reference solution builds on the previous one and still passes the earlier tests."""
+    s = mission.get("series")
+    if not s:
+        return
+    assert mission["kind"] == "project", "Las etapas son misiones de tipo proyecto"
+    if s["stage"] == 1:
+        return
+    prev = _stage(content, s["id"], s["stage"] - 1)
+    assert prev["id"] in mission["requires"], "Cada etapa requiere la anterior"
+    assert mission["solution"].startswith(prev["solution"].rstrip()), "La solución debe ampliar la de la etapa anterior"
+    carried = prev["solution"].rstrip() + "\n\n" + mission["starter"]
+    res = _run(mission, carried, mission["tests"], seconds=20)
+    assert not res["passed"], "El código heredado más el esqueleto ya pasa: la etapa no exige nada nuevo"
+    still = _run(prev, mission["solution"], prev["tests"], seconds=20)
+    assert still["passed"], "La solución de esta etapa rompe las pruebas de la anterior:\n" + _report(still)
+
+
+def test_series_catalog(content):
+    series = {}
+    for m in content["missions"]:
+        if m.get("series"):
+            series.setdefault(m["series"]["id"], []).append(m)
+    for sid, stages in series.items():
+        nums = sorted(m["series"]["stage"] for m in stages)
+        assert nums == list(range(1, len(stages) + 1)), f"{sid}: etapas {nums}"
+        assert {m["series"]["of"] for m in stages} == {len(stages)}, f"{sid}: total de etapas incoherente"
+        assert len({m["series"]["title"] for m in stages}) == 1 and len({m["world"] for m in stages}) == 1
+
+
+def test_lab_link(mission, content):
+    lab = mission.get("lab")
+    if not lab:
+        return
+    assert lab["tab"] in content["labs"][lab["lab"]], f"El simulador {lab['lab']}/{lab['tab']} no existe"

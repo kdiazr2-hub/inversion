@@ -2,10 +2,12 @@
 import { writeFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { MISSIONS, WORLDS } from "../src/content";
+import { LAB_TABS } from "../src/content/labs";
 import { text } from "../src/content/types";
 
 const out = {
   worlds: WORLDS.map((w) => ({ id: w.id, unlock: w.unlock })),
+  labs: Object.fromEntries(Object.entries(LAB_TABS).map(([k, v]) => [k, v.map((t) => t.id)])),
   missions: MISSIONS.map((m) => ({
     ...m,
     story: text(m.story),

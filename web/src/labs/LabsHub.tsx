@@ -3,8 +3,9 @@ import { href } from "../router";
 
 export const LABS = [
   { id: "estadistica", title: "Laboratorio estadístico", icon: "dice", desc: "Monedas y dados, teorema central del límite, intervalos de confianza, errores tipo I y II, potencia, bootstrap, regresión, correlación, Bayes, ROC y Kaplan-Meier." },
+  { id: "matematicas", title: "Laboratorio matemático", icon: "spark", desc: "Derivadas y rectas tangentes, descenso de gradiente sobre superficies de pérdida, matrices como transformaciones del plano (determinante y autovectores) e integración numérica." },
   { id: "datos", title: "Laboratorio de datos", icon: "table", desc: "Explora conjuntos de datos sintéticos con pandas: filtra, agrupa y grafica con código real." },
-  { id: "ml", title: "Laboratorio de machine learning", icon: "gear", desc: "Entrena k-NN y regresión logística sobre puntos que tú colocas; observa sobreajuste y la diferencia entre entrenamiento y prueba." },
+  { id: "ml", title: "Laboratorio de machine learning", icon: "gear", desc: "Entrena k-NN, regresión logística y árboles sobre puntos que tú colocas; sobreajuste en regresión polinómica, k-means paso a paso y PCA." },
   { id: "ia", title: "Laboratorio de IA", icon: "brain", desc: "Tokenización, embeddings, búsqueda semántica y un mini RAG local que cita sus fuentes." },
   { id: "python", title: "Consola libre de Python", icon: "spark", desc: "Escribe y ejecuta cualquier programa, con numpy, pandas, scipy y matplotlib." },
 ];

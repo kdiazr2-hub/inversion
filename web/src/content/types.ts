@@ -66,6 +66,23 @@ export interface ProjectSpec {
   portfolio: string;
 }
 
+/** Stage of a progressive project: stage n > 1 starts from the learner's code of stage n − 1. */
+export interface SeriesRef {
+  id: string;
+  title: string;
+  stage: number;
+  of: number;
+}
+
+export type LabId = "estadistica" | "ml" | "matematicas";
+
+/** Interactive simulator that lets the learner experiment with the mission's idea. */
+export interface LabLink {
+  lab: LabId;
+  tab: string;
+  label: string;
+}
+
 export interface Mission {
   id: string;
   world: WorldId;
@@ -101,6 +118,8 @@ export interface Mission {
   advanced?: AdvancedChallenge;
   review: Text;
   project?: ProjectSpec;
+  series?: SeriesRef;
+  lab?: LabLink;
   xp: number;
   coins: number;
 }

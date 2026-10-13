@@ -262,6 +262,8 @@ export function worldProgress(state: SaveState, missions: Mission[], world: Worl
 
 export function isWorldUnlocked(state: SaveState, content: Content, world: World): boolean {
   if (state.placement?.worlds.includes(world.id)) return true;
+  // Progress already made in a world keeps it open even if new content lowers the fractions below.
+  if (content.missions.some((m) => m.world === world.id && state.missions[m.id]?.done)) return true;
   return world.unlock.every((u) => {
     const p = worldProgress(state, content.missions, u.world);
     return p.total > 0 && p.fraction >= u.fraction - 1e-9;
@@ -314,11 +316,21 @@ export const ACHIEVEMENTS: (Achievement & { earned: (s: SaveState, c: Content) =
     earned: (s, c) => doneIn(s, c.missions, (m) => m.zone === "Probabilidad") && Object.keys(s.labs).length > 0,
   },
   { id: "maestro-inferencia", title: "Maestro de la inferencia", description: "Completaste la zona de inferencia estadística.", icon: "scale", earned: (s, c) => doneIn(s, c.missions, (m) => m.zone === "Inferencia") },
-  { id: "arquitecto-estadistico", title: "Arquitecto estadístico", description: "Terminaste el proyecto final de estadística.", icon: "column", earned: (s, c) => doneIn(s, c.missions, (m) => m.kind === "project" && m.world === "w4") },
+  { id: "arquitecto-estadistico", title: "Arquitecto estadístico", description: "Terminaste el proyecto final de estadística.", icon: "column", earned: (s) => Boolean(s.missions["proj-estudio-estadistico"]?.done) },
   { id: "analista-datos", title: "Analista de datos", description: "Completaste el Reino de los Datos.", icon: "chart", earned: (s, c) => doneIn(s, c.missions, (m) => m.world === "w3") },
   { id: "entrenador-modelos", title: "Entrenador de modelos", description: "Completaste 5 misiones de machine learning.", icon: "gear", earned: (s, c) => countDone(s, c.missions, (m) => m.world === "w6") >= 5 },
   { id: "constructor-ia", title: "Constructor de IA", description: "Completaste la Fortaleza de la IA.", icon: "brain", earned: (s, c) => doneIn(s, c.missions, (m) => m.world === "w7") },
   { id: "ingeniero-python", title: "Ingeniero Python", description: "Completaste el Bosque y las Montañas.", icon: "tower", earned: (s, c) => doneIn(s, c.missions, (m) => m.world === "w1" || m.world === "w2") },
+  {
+    id: "obra-por-etapas",
+    title: "Obra por etapas",
+    description: "Terminaste todas las etapas de un proyecto progresivo.",
+    icon: "column",
+    earned: (s, c) => {
+      const finals = c.missions.filter((m) => m.series && m.series.stage === m.series.of);
+      return finals.some((m) => c.missions.filter((x) => x.series?.id === m.series!.id).every((x) => s.missions[x.id]?.done));
+    },
+  },
   { id: "sin-ayuda", title: "Mente independiente", description: "Diez misiones resueltas sin pistas ni solución.", icon: "star", earned: (s) => Object.values(s.missions).filter((r) => r.done && r.hints === 0 && !r.sawSolution).length >= 10 },
   { id: "memoria", title: "Memoria de elefante", description: "Diez repasos superados.", icon: "book", earned: (s) => s.reviews.filter((r) => r.grade !== "again").length >= 10 },
   { id: "constancia", title: "Constancia", description: "Una racha de 7 días.", icon: "flame", earned: (s) => computeStreak(s).best >= 7 },

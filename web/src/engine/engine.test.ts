@@ -75,6 +75,16 @@ describe("missions and rewards", () => {
     expect(isWorldUnlocked(s, content, worlds[1])).toBe(true); // 1/2 of w1
   });
 
+  it("keeps a world open when new content lowers the unlock fraction", () => {
+    let s = A.recordCheck(newSave(T0), content, a, pass, {}, T0);
+    s = A.recordCheck(s, content, mk("c", "w2"), pass, {}, T0);
+    expect(s.missions.c.done).not.toBeNull();
+    const grown: Content = { worlds, missions: [...content.missions, mk("a2", "w1", ["b"]), mk("a3", "w1", ["a2"])] };
+    // w1 is now at 1/4 < 0.5, but the learner already completed a mission in w2.
+    expect(isWorldUnlocked(s, grown, worlds[1])).toBe(true);
+    expect(isWorldUnlocked(A.recordCheck(newSave(T0), grown, a, pass, {}, T0), grown, worlds[1])).toBe(false);
+  });
+
   it("does not complete a locked mission even if tests pass", () => {
     const s = A.recordCheck(newSave(T0), content, b, pass, {}, T0);
     expect(s.missions.b.done).toBeNull();

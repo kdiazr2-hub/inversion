@@ -54,3 +54,50 @@ test("ML, AI and data labs work offline", async ({ page }) => {
   await shot("lab-datos");
   expect(errors).toEqual([]);
 });
+
+test("math lab and new ML simulators compute, react and deep-link", async ({ page }) => {
+  const errors: string[] = [];
+  page.on("pageerror", (e) => errors.push(e.message));
+  await page.goto("/#/crear");
+  await page.getByLabel(/Nombre/).fill("Lab");
+  await page.getByRole("button", { name: "Comenzar la aventura" }).click();
+  await page.getByRole("button", { name: /Saltar/ }).click();
+  for (const [lab, count] of [["matematicas", 4], ["ml", 4]] as const) {
+    await page.goto(`/#/labs/${lab}`);
+    const tabs = page.getByRole("tab");
+    await expect(tabs).toHaveCount(count);
+    for (let i = 0; i < count; i++) {
+      const name = (await tabs.nth(i).innerText()).trim();
+      await tabs.nth(i).click();
+      const panel = page.getByRole("tabpanel");
+      await expect(panel.locator("svg[role=img], canvas[role=img]").first()).toBeVisible();
+      const sliders = panel.locator("input[type=range]");
+      for (let j = 0; j < (await sliders.count()); j++) {
+        const s = sliders.nth(j);
+        await s.fill((await s.getAttribute("max")) ?? "1");
+        await s.fill((await s.getAttribute("min")) ?? "0");
+      }
+      await expect(panel).not.toContainText("NaN");
+      if (test.info().project.name === "desktop") await page.screenshot({ path: `test-results/${lab}-${i}-${name.replace(/\W+/g, "_")}.png`, fullPage: true });
+    }
+  }
+  // Missions link straight to a simulator tab.
+  await page.goto("/#/labs/matematicas/gradiente");
+  await expect(page.getByRole("tab", { name: "Descenso de gradiente" })).toHaveAttribute("aria-selected", "true");
+  await page.goto("/#/labs/ml/pca");
+  await expect(page.getByRole("tab", { name: "PCA" })).toHaveAttribute("aria-selected", "true");
+  // Gradient descent: a rate above 2/L diverges on the round bowl.
+  await page.goto("/#/labs/matematicas/gradiente");
+  await page.getByLabel("Superficie de pérdida").selectOption("cuenco");
+  const rate = page.getByLabel("Tasa de aprendizaje α");
+  await rate.fill("1.1");
+  await expect(page.getByRole("tabpanel")).toContainText("diverge");
+  await rate.fill("0.3");
+  await expect(page.getByRole("tabpanel")).toContainText("converge");
+  // k-means steps forward until convergence.
+  await page.goto("/#/labs/ml/kmeans");
+  await page.getByRole("button", { name: "Hasta el final" }).click();
+  await expect(page.getByRole("tabpanel")).toContainText("Convergió");
+  await expect(page.getByRole("tabpanel").getByText("sí", { exact: true })).toBeVisible();
+  expect(errors).toEqual([]);
+});

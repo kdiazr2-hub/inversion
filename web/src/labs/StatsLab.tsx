@@ -1,4 +1,5 @@
 // Statistical laboratory: every chart is computed from the chosen parameters (seeded simulations).
+import { LAB_TABS } from "../content/labs";
 import { useEffect, useMemo, useState } from "react";
 import { ChartCard, fmt, Legend, SERIES, XYChart, type Pt } from "../components/Charts";
 import * as A from "../engine/actions";
@@ -775,19 +776,20 @@ function KaplanMeier() {
   );
 }
 
-const TABS = [
-  { id: "monedas", label: "Monedas y dados", el: <CoinsDice /> },
-  { id: "tcl", label: "Teorema central del límite", el: <CLT /> },
-  { id: "distribuciones", label: "Distribuciones", el: <Distributions /> },
-  { id: "intervalos", label: "Intervalos de confianza", el: <ConfidenceIntervals /> },
-  { id: "potencia", label: "Errores y potencia", el: <Power /> },
-  { id: "bootstrap", label: "Bootstrap", el: <Bootstrap /> },
-  { id: "regresion", label: "Regresión y correlación", el: <Regression /> },
-  { id: "bayes", label: "Actualización bayesiana", el: <Bayes /> },
-  { id: "diagnostico", label: "Pruebas diagnósticas", el: <Diagnostic /> },
-  { id: "roc", label: "Curva ROC", el: <Roc /> },
-  { id: "km", label: "Kaplan-Meier", el: <KaplanMeier /> },
-];
+const PANELS: Record<string, JSX.Element> = {
+  monedas: <CoinsDice />,
+  tcl: <CLT />,
+  distribuciones: <Distributions />,
+  intervalos: <ConfidenceIntervals />,
+  potencia: <Power />,
+  bootstrap: <Bootstrap />,
+  regresion: <Regression />,
+  bayes: <Bayes />,
+  diagnostico: <Diagnostic />,
+  roc: <Roc />,
+  km: <KaplanMeier />,
+};
+const TABS = LAB_TABS.estadistica.map((t) => ({ ...t, el: PANELS[t.id] }));
 
 export function StatsLab({ initial }: { initial?: string }) {
   const { update } = useGame();

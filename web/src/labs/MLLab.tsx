@@ -1,4 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
+import { LAB_TABS } from "../content/labs";
+import { KMeansSim, PcaSim, PolySim } from "./MLExtra";
 import { ChartCard, fmt, Legend, SERIES, XYChart } from "../components/Charts";
 import * as A from "../engine/actions";
 import { useGame } from "../engine/store";
@@ -70,7 +72,7 @@ function Regions({ model, train, test, onAdd }: { model: Model; train: P2[]; tes
   );
 }
 
-export function MLLab() {
+function Classification() {
   const { update } = useGame();
   const [shape, setShape] = useState<Shape>("lunas");
   const [n, setN] = useState(200);
@@ -99,10 +101,7 @@ export function MLLab() {
   const P = PARAM[kind];
   return (
     <div className="flex flex-col gap-5">
-      <div>
-        <h1 className="px-title text-gold text-2xl">Laboratorio de machine learning</h1>
-        <p className="text-muted text-sm">Clasificación binaria con dos variables. Los modelos se entrenan en tu navegador con código abierto y comprobado; nada se envía a ningún servidor.</p>
-      </div>
+      <p className="text-muted text-sm">Clasificación binaria con dos variables. Haz clic en el mapa para añadir puntos.</p>
       <LabLayout
         controls={
           <>
@@ -184,6 +183,29 @@ export function MLLab() {
           </div>
         </div>
       </LabLayout>
+    </div>
+  );
+}
+
+const PANELS: Record<string, JSX.Element> = { clasificacion: <Classification />, polinomios: <PolySim />, kmeans: <KMeansSim />, pca: <PcaSim /> };
+
+export function MLLab({ initial }: { initial?: string }) {
+  const tabs = LAB_TABS.ml;
+  const [tab, setTab] = useState(tabs.some((t) => t.id === initial) ? initial! : tabs[0].id);
+  return (
+    <div className="flex flex-col gap-5">
+      <div>
+        <h1 className="px-title text-gold text-2xl">Laboratorio de machine learning</h1>
+        <p className="text-muted text-sm">Los modelos se entrenan en tu navegador con código abierto y comprobado; nada se envía a ningún servidor.</p>
+      </div>
+      <div role="tablist" aria-label="Simuladores" className="flex flex-wrap gap-2">
+        {tabs.map((t) => (
+          <button key={t.id} role="tab" aria-selected={tab === t.id} className={`chip text-sm px-3 py-1 ${tab === t.id ? "bg-gold text-ink" : ""}`} onClick={() => setTab(t.id)}>
+            {t.label}
+          </button>
+        ))}
+      </div>
+      <div role="tabpanel">{PANELS[tab]}</div>
     </div>
   );
 }

@@ -42,6 +42,12 @@ export const fmt = (v: number, digits = 2) => {
   return v.toLocaleString("es", { maximumFractionDigits: a >= 100 ? 0 : digits });
 };
 
+const SUP: Record<string, string> = { "-": "⁻", "0": "⁰", "1": "¹", "2": "²", "3": "³", "4": "⁴", "5": "⁵", "6": "⁶", "7": "⁷", "8": "⁸", "9": "⁹" };
+/** Tick label for a log₁₀ axis: only whole exponents are labelled (10³, 10⁻⁵…). */
+export const pow10Tick = (v: number) => (Math.abs(v - Math.round(v)) < 1e-6 ? `10${String(Math.round(v)).replace(/./g, (c) => SUP[c] ?? c)}` : "");
+/** Tick label for an axis of whole numbers (iterations, degrees, k): fractional ticks stay blank. */
+export const intTick = (v: number) => (Math.abs(v - Math.round(v)) < 1e-6 ? String(Math.round(v)) : "");
+
 export interface Pt {
   x: number;
   y: number;
@@ -74,6 +80,8 @@ export interface XYProps {
   vlines?: { x: number; label?: string; color?: string }[];
   bands?: { x0: number; x1: number; color: string; label?: string }[];
   segments?: { x0: number; y0: number; x1: number; y1: number; color: string; width?: number }[];
+  /** × markers drawn above everything else (e.g. centroids, optima). */
+  markers?: { x: number; y: number; color: string }[];
   formatX?: (v: number) => string;
   formatY?: (v: number) => string;
   ariaLabel: string;
@@ -81,7 +89,7 @@ export interface XYProps {
   children?: ReactNode;
 }
 
-export function XYChart({ height = 260, x, y, xLabel, yLabel, series = [], bars = [], vlines = [], bands = [], segments = [], formatX = (v) => fmt(v), formatY = (v) => fmt(v), ariaLabel, onPlotClick }: XYProps) {
+export function XYChart({ height = 260, x, y, xLabel, yLabel, series = [], bars = [], vlines = [], bands = [], segments = [], markers = [], formatX = (v) => fmt(v), formatY = (v) => fmt(v), ariaLabel, onPlotClick }: XYProps) {
   const [ref, width] = useWidth<HTMLDivElement>();
   const [hover, setHover] = useState<{ px: number; py: number; lines: string[] } | null>(null);
   const m = { l: 48, r: 14, t: 12, b: xLabel ? 42 : 28 };
@@ -206,6 +214,17 @@ export function XYChart({ height = 260, x, y, xLabel, yLabel, series = [], bars 
             </g>
           ),
         )}
+        {markers.map((mk, i) => {
+          const cx = sx(mk.x);
+          const cy = sy(clampY(mk.y));
+          const d = `M${cx - 7},${cy - 7}L${cx + 7},${cy + 7}M${cx + 7},${cy - 7}L${cx - 7},${cy + 7}`;
+          return (
+            <g key={`mk${i}`}>
+              <path d={d} stroke={SURFACE} strokeWidth={7} strokeLinecap="round" />
+              <path d={d} stroke={mk.color} strokeWidth={3.5} strokeLinecap="round" />
+            </g>
+          );
+        })}
         {vlines.map((v, i) => (
           <g key={i}>
             <line x1={sx(v.x)} x2={sx(v.x)} y1={m.t} y2={m.t + ih} stroke={v.color ?? "#e9eef8"} strokeWidth={1.5} />

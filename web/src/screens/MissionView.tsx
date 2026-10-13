@@ -1,7 +1,7 @@
 // A mission: story → intuition → formal → example → challenge (editor, console, tests)
 // → hints → common errors → solution → interpretation → advanced challenge → review advice.
 import { useEffect, useMemo, useRef, useState } from "react";
-import { missionById, MISSIONS } from "../content";
+import { missionById, MISSIONS, previousStage, seriesStages, stageStartCode } from "../content";
 import { text, type Mission } from "../content/types";
 import { worldById } from "../content/worlds";
 import { CodeEditor } from "../components/CodeEditor";
@@ -138,6 +138,37 @@ function Quiz({ m }: { m: Mission }) {
   );
 }
 
+function StageBanner({ m }: { m: Mission }) {
+  const { state } = useGame();
+  const stages = seriesStages(m.series!.id);
+  return (
+    <nav className="px-panel-gold p-3 flex flex-col gap-2" aria-label="Etapas del proyecto">
+      <div className="label">
+        Proyecto progresivo · Etapa {m.series!.stage} de {m.series!.of}
+      </div>
+      <div className="font-pixel text-gold">{m.series!.title}</div>
+      <ol className="flex flex-wrap gap-2 text-sm">
+        {stages.map((st) => {
+          const done = Boolean(state.missions[st.id]?.done);
+          const current = st.id === m.id;
+          return (
+            <li key={st.id}>
+              <a
+                href={href(`mision/${st.id}`)}
+                aria-current={current ? "step" : undefined}
+                className={`chip ${current ? "bg-gold text-ink" : done ? "text-leaf" : "text-muted"}`}
+              >
+                {done ? "✔ " : ""}
+                {st.series!.stage}. {st.title.replace(/^.*?:\s*/, "")}
+              </a>
+            </li>
+          );
+        })}
+      </ol>
+    </nav>
+  );
+}
+
 export function MissionView({ id, review }: { id: string; review: boolean }) {
   const m = missionById[id];
   const { state, update, toast } = useGame();
@@ -145,7 +176,12 @@ export function MissionView({ id, review }: { id: string; review: boolean }) {
   const rec = state.missions[id];
   const unlocked = m ? isMissionUnlocked(state, CONTENT, m) : false;
   const [mode, setMode] = useState<"main" | "advanced">("main");
-  const initialCode = useMemo(() => (m ? (review ? m.starter : rec?.code ?? m.starter) : ""), [id, review]); // eslint-disable-line react-hooks/exhaustive-deps
+  // Stage n of a progressive project starts from the learner's code of stage n − 1 (the reference
+  // solution in review mode, or if that code was never saved).
+  const prevStage = m ? previousStage(m) : undefined;
+  const freshStarter = m ? stageStartCode(m, review || !prevStage ? undefined : state.missions[prevStage.id]?.code) : "";
+  const initialCode = useMemo(() => (m ? (review ? freshStarter : rec?.code ?? freshStarter) : ""), [id, review]); // eslint-disable-line react-hooks/exhaustive-deps
+  const [confirmCarry, setConfirmCarry] = useState(false);
   const [code, setCode] = useState(initialCode);
   const [advCode, setAdvCode] = useState(m?.advanced ? rec?.advancedCode ?? m.advanced.starter : "");
   const [out, setOut] = useState<PanelResult>(null);
@@ -250,15 +286,41 @@ export function MissionView({ id, review }: { id: string; review: boolean }) {
       return;
     }
     setConfirmReset(false);
-    onChange(adv ? m.advanced!.starter : m.starter);
+    onChange(adv ? m.advanced!.starter : freshStarter);
     setOut(null);
   };
 
   const errorLine = out && "result" in out ? out.result.error?.line ?? null : null;
   const running = runner.state === "running" || runner.state === "packages" || busy;
 
+  const useReferenceCarry = () => {
+    if (!confirmCarry) {
+      setConfirmCarry(true);
+      setTimeout(() => setConfirmCarry(false), 3000);
+      return;
+    }
+    setConfirmCarry(false);
+    setMode("main");
+    onChange(stageStartCode(m));
+    setOut(null);
+    setMobileTab("codigo");
+  };
+
   const lesson = (
     <div className="flex flex-col gap-7">
+      {m.series && <StageBanner m={m} />}
+      {m.series && prevStage && !review && (
+        <div className="px-panel p-3 text-sm flex flex-col gap-2" data-testid="stage-carry">
+          <p>
+            Tu editor empieza con <strong>tu código de la etapa anterior</strong> («{prevStage.title}») y, debajo, el esqueleto de esta etapa. Las pruebas de esta etapa pueden usar las funciones que ya escribiste.
+          </p>
+          <div>
+            <button className="btn-ghost text-sm" onClick={useReferenceCarry}>
+              {confirmCarry ? "Pulsa otra vez: se reemplaza tu código" : "Empezar desde la solución de referencia de la etapa anterior"}
+            </button>
+          </div>
+        </div>
+      )}
       <Section id="historia" title="Historia">
         <Markdown text={text(m.story)} className="text-[17px]" />
       </Section>
@@ -278,6 +340,11 @@ export function MissionView({ id, review }: { id: string; review: boolean }) {
       </Section>
       <Section id="intuicion" title="Intuición">
         <Markdown text={text(m.intuition)} />
+        {m.lab && (
+          <a className="btn-sky mt-3 self-start inline-flex items-center gap-2" href={href(`labs/${m.lab.lab}/${m.lab.tab}`)} data-testid="lab-link">
+            <PixelIcon name="dice" size={16} /> Experimenta en el laboratorio: {m.lab.label}
+          </a>
+        )}
       </Section>
       {m.formal && (
         <Section id="formal" title="Explicación formal" tone="text-violet">

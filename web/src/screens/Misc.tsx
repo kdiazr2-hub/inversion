@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { missionById, MISSIONS, WORLDS } from "../content";
+import { missionById, MISSIONS, seriesStages, WORLDS } from "../content";
 import { text, type WorldId } from "../content/types";
 import { worldById } from "../content/worlds";
 import { EDITOR_THEMES } from "../components/CodeEditor";
@@ -211,38 +211,80 @@ export function Inventory() {
 
 export function Projects() {
   const { state } = useGame();
-  const projects = MISSIONS.filter((m) => m.kind === "project");
+  const single = MISSIONS.filter((m) => m.kind === "project" && !m.series);
+  const series = MISSIONS.filter((m) => m.series?.stage === 1);
+  const isDone = (id: string) => Boolean(state.missions[id]?.done);
   return (
     <div className="flex flex-col gap-5">
       <div>
-        <h1 className="px-title text-gold text-2xl">Proyectos integradores</h1>
+        <h1 className="px-title text-gold text-2xl">Proyectos</h1>
         <p className="text-muted text-sm">Retos largos que combinan lo aprendido. Cada uno tiene requisitos, datos, etapas con pruebas y criterios de evaluación, y queda en tu portafolio.</p>
       </div>
-      <ul className="grid md:grid-cols-2 xl:grid-cols-3 gap-4">
-        {projects.map((p) => {
-          const done = state.missions[p.id]?.done;
-          return (
-            <li key={p.id} className={done ? "px-panel-gold p-4" : "px-panel p-4"}>
-              <div className="label">{worldById[p.world].name}</div>
-              <h2 className="font-pixel text-lg mt-1">{p.title}</h2>
-              <Markdown text={text(p.objective)} className="text-sm text-muted" />
-              <div className="label mt-2">Etapas</div>
-              <ol className="list-decimal pl-5 text-sm">{p.project!.stages.map((s) => <li key={s}>{s}</li>)}</ol>
-              <a className={done ? "btn-ghost mt-3" : "btn-gold mt-3"} href={href(`mision/${p.id}`)}>
-                {done ? "Ver proyecto" : "Empezar"}
-              </a>
-            </li>
-          );
-        })}
-      </ul>
-      <p className="text-sm text-muted">Hay más proyectos en el temario (dashboard de ventas, detector de anomalías, API de predicciones…). Se añadirán como misiones de tipo «project» en los mundos correspondientes.</p>
+      <section aria-labelledby="prog-h" className="flex flex-col gap-3">
+        <h2 id="prog-h" className="px-title text-sky text-sm">Proyectos progresivos</h2>
+        <p className="text-sm text-muted">Se construyen por etapas: cada etapa es una misión con sus propias pruebas y empieza con tu código de la etapa anterior.</p>
+        <ul className="grid md:grid-cols-2 xl:grid-cols-3 gap-4">
+          {series.map((first) => {
+            const stages = seriesStages(first.series!.id);
+            const done = stages.filter((st) => isDone(st.id)).length;
+            const next = stages.find((st) => !isDone(st.id));
+            return (
+              <li key={first.series!.id} className={done === stages.length ? "px-panel-gold p-4 flex flex-col gap-2" : "px-panel p-4 flex flex-col gap-2"} data-testid="series-card">
+                <div className="label">{worldById[first.world].name}</div>
+                <h3 className="font-pixel text-lg">{first.series!.title}</h3>
+                <p className="text-sm text-muted">{first.project?.dataset}</p>
+                <div className="bar" role="progressbar" aria-valuemin={0} aria-valuemax={stages.length} aria-valuenow={done} aria-label={`${done} de ${stages.length} etapas`}>
+                  <div className="h-full bg-gold" style={{ width: `${(done / stages.length) * 100}%` }} />
+                </div>
+                <ol className="text-sm flex flex-col gap-1">
+                  {stages.map((st) => (
+                    <li key={st.id} className={isDone(st.id) ? "text-leaf" : st === next ? "" : "text-muted"}>
+                      {isDone(st.id) ? "✔" : `${st.series!.stage}.`} <a className="underline decoration-dotted" href={href(`mision/${st.id}`)}>{st.title.replace(/^.*?:\s*/, "")}</a>
+                    </li>
+                  ))}
+                </ol>
+                <a className={next ? "btn-gold mt-1 self-start" : "btn-ghost mt-1 self-start"} href={href(`mision/${(next ?? stages[stages.length - 1]).id}`)}>
+                  {next ? (done ? `Continuar: etapa ${next.series!.stage}` : "Empezar") : "Ver proyecto"}
+                </a>
+              </li>
+            );
+          })}
+        </ul>
+      </section>
+      <section aria-labelledby="int-h" className="flex flex-col gap-3">
+        <h2 id="int-h" className="px-title text-sky text-sm">Proyectos integradores</h2>
+        <ul className="grid md:grid-cols-2 xl:grid-cols-3 gap-4">
+          {single.map((p) => {
+            const done = isDone(p.id);
+            return (
+              <li key={p.id} className={done ? "px-panel-gold p-4" : "px-panel p-4"}>
+                <div className="label">{worldById[p.world].name}</div>
+                <h3 className="font-pixel text-lg mt-1">{p.title}</h3>
+                <Markdown text={text(p.objective)} className="text-sm text-muted" />
+                <div className="label mt-2">Etapas</div>
+                <ol className="list-decimal pl-5 text-sm">{p.project!.stages.map((s) => <li key={s}>{s}</li>)}</ol>
+                <a className={done ? "btn-ghost mt-3" : "btn-gold mt-3"} href={href(`mision/${p.id}`)}>
+                  {done ? "Ver proyecto" : "Empezar"}
+                </a>
+              </li>
+            );
+          })}
+        </ul>
+      </section>
     </div>
   );
 }
 
 export function Portfolio() {
   const { state, update } = useGame();
-  const items = MISSIONS.filter((m) => (m.kind === "project" || m.advanced) && state.missions[m.id]?.done && (m.kind === "project" || state.missions[m.id]?.advancedDone));
+  // A progressive project appears once, when its last stage is done (its code contains every stage).
+  const items = MISSIONS.filter(
+    (m) =>
+      (m.kind === "project" || m.advanced) &&
+      state.missions[m.id]?.done &&
+      (m.kind === "project" || state.missions[m.id]?.advancedDone) &&
+      (!m.series || (m.series.stage === m.series.of && seriesStages(m.series.id).every((st) => state.missions[st.id]?.done))),
+  );
   return (
     <div className="flex flex-col gap-5 max-w-4xl">
       <div>
@@ -256,8 +298,8 @@ export function Portfolio() {
           <article key={m.id} className="px-panel p-5 flex flex-col gap-3">
             <div className="flex justify-between gap-2 flex-wrap">
               <div>
-                <div className="label">{m.kind === "project" ? "Proyecto" : "Reto avanzado"} · {worldById[m.world].short}</div>
-                <h2 className="font-pixel text-xl">{m.kind === "project" ? m.title : m.advanced!.title}</h2>
+                <div className="label">{m.series ? `Proyecto progresivo · ${m.series.of} etapas` : m.kind === "project" ? "Proyecto" : "Reto avanzado"} · {worldById[m.world].short}</div>
+                <h2 className="font-pixel text-xl">{m.series ? m.series.title : m.kind === "project" ? m.title : m.advanced!.title}</h2>
               </div>
               <span className="text-sm text-muted">{dayKey(rec.advancedDone ?? rec.done!)}</span>
             </div>

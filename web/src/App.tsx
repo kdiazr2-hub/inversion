@@ -13,6 +13,7 @@ import { WorldMap, WorldView } from "./screens/WorldMap";
 const Playground = lazy(() => import("./labs/Playground").then((m) => ({ default: m.Playground })));
 const StatsLab = lazy(() => import("./labs/StatsLab").then((m) => ({ default: m.StatsLab })));
 const DataLab = lazy(() => import("./labs/DataLab").then((m) => ({ default: m.DataLab })));
+const MathLab = lazy(() => import("./labs/MathLab").then((m) => ({ default: m.MathLab })));
 const MLLab = lazy(() => import("./labs/MLLab").then((m) => ({ default: m.MLLab })));
 const AILab = lazy(() => import("./labs/AILab").then((m) => ({ default: m.AILab })));
 
@@ -69,9 +70,10 @@ export function App() {
         break;
       case "labs":
         page = {
-          estadistica: <StatsLab />,
+          estadistica: <StatsLab key={parts[2]} initial={parts[2]} />,
+          matematicas: <MathLab key={parts[2]} initial={parts[2]} />,
           datos: <DataLab />,
-          ml: <MLLab />,
+          ml: <MLLab key={parts[2]} initial={parts[2]} />,
           ia: <AILab />,
           python: <Playground />,
         }[parts[1] ?? ""] ?? <LabsHub />;
