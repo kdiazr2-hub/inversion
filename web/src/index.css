@@ -1,0 +1,186 @@
+@import "@fontsource/pixelify-sans/500.css";
+@import "@fontsource/pixelify-sans/700.css";
+@import "@fontsource/atkinson-hyperlegible/400.css";
+@import "@fontsource/atkinson-hyperlegible/700.css";
+@import "@fontsource/jetbrains-mono/400.css";
+@import "@fontsource/jetbrains-mono/700.css";
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Layout concept: a night-forest HUD — pixel-framed panels floating over a dark sky,
+   pixel display type for game chrome only, a hyper-legible face for everything you read. */
+:root {
+  color-scheme: dark;
+  --ink: #0b1120;
+  --panel: #141f3a;
+  --line: #2c3f6b;
+  --gold: #f2c14e;
+  --sky: #5ad1e8;
+  --leaf: #6fd672;
+  --ember: #ff7a59;
+}
+
+html,
+body,
+#root {
+  min-height: 100%;
+}
+
+body {
+  @apply bg-ink text-text font-body antialiased;
+  font-size: 16px;
+  line-height: 1.55;
+  background-image: radial-gradient(1px 1px at 20px 30px, #ffffff22 50%, transparent 51%),
+    radial-gradient(1px 1px at 120px 80px, #ffffff18 50%, transparent 51%),
+    radial-gradient(1px 1px at 200px 160px, #ffffff14 50%, transparent 51%);
+  background-size: 240px 200px;
+}
+
+h1,
+h2,
+h3 {
+  text-wrap: balance;
+}
+
+:focus-visible {
+  outline: 3px solid var(--sky);
+  outline-offset: 2px;
+}
+
+.pixelated {
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
+}
+
+@layer components {
+  /* A panel with a stepped pixel border. */
+  .px-panel {
+    @apply bg-panel rounded-[2px] relative;
+    box-shadow:
+      0 0 0 2px #0b1120,
+      0 0 0 4px #2c3f6b,
+      0 6px 0 2px #0b1120;
+  }
+  .px-panel-gold {
+    @apply bg-panel rounded-[2px] relative;
+    box-shadow:
+      0 0 0 2px #0b1120,
+      0 0 0 4px #f2c14e,
+      0 6px 0 2px #0b1120;
+  }
+  .px-title {
+    @apply font-pixel tracking-wide uppercase;
+  }
+  .btn {
+    @apply inline-flex items-center justify-center gap-2 font-pixel text-[15px] tracking-wide px-4 py-2 rounded-[2px] select-none transition-transform;
+    box-shadow:
+      0 0 0 2px #0b1120,
+      inset 0 -4px 0 0 rgba(0, 0, 0, 0.25);
+  }
+  .btn:active:not(:disabled) {
+    transform: translateY(2px);
+  }
+  .btn:disabled {
+    @apply opacity-50 cursor-not-allowed;
+  }
+  .btn-gold {
+    @apply btn bg-gold text-ink hover:brightness-110;
+  }
+  .btn-leaf {
+    @apply btn bg-leaf text-ink hover:brightness-110;
+  }
+  .btn-sky {
+    @apply btn bg-sky text-ink hover:brightness-110;
+  }
+  .btn-ghost {
+    @apply btn bg-panel2 text-text hover:bg-line;
+  }
+  .btn-ember {
+    @apply btn bg-ember text-ink hover:brightness-110;
+  }
+  .chip {
+    @apply inline-flex items-center gap-1 rounded-[2px] px-2 py-0.5 text-xs font-bold bg-panel2 text-muted;
+  }
+  .label {
+    @apply text-xs font-bold uppercase tracking-[0.08em] text-muted;
+  }
+  .input {
+    @apply bg-ink border-2 border-line rounded-[2px] px-3 py-2 text-text w-full focus:border-sky outline-none;
+  }
+  .bar {
+    @apply h-3 bg-ink rounded-[2px] overflow-hidden;
+    box-shadow: inset 0 0 0 2px #2c3f6b;
+  }
+}
+
+.prose-pq p {
+  margin: 0.55em 0;
+}
+.prose-pq ul,
+.prose-pq ol {
+  margin: 0.5em 0;
+  padding-left: 1.4em;
+}
+.prose-pq ul {
+  list-style: square;
+}
+.prose-pq ol {
+  list-style: decimal;
+}
+.prose-pq li {
+  margin: 0.2em 0;
+}
+.prose-pq code {
+  @apply font-mono text-[0.88em] bg-ink text-sky px-1 py-[1px] rounded-[2px];
+}
+.prose-pq pre {
+  @apply font-mono text-[13.5px] bg-ink rounded-[2px] p-3 my-3 overflow-x-auto;
+  box-shadow: inset 0 0 0 2px #2c3f6b;
+}
+.prose-pq pre code {
+  @apply bg-transparent p-0 text-text;
+}
+.prose-pq strong {
+  @apply text-gold font-bold;
+}
+.prose-pq h4 {
+  @apply font-pixel text-sky mt-4 mb-1;
+}
+
+@keyframes pq-confetti {
+  0% {
+    transform: translate3d(0, -20px, 0) rotate(0);
+    opacity: 1;
+  }
+  100% {
+    transform: translate3d(var(--dx), 110vh, 0) rotate(540deg);
+    opacity: 0.8;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+.reduce-motion *,
+.reduce-motion *::before,
+.reduce-motion *::after {
+  animation-duration: 0.01ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 0.01ms !important;
+}
+
+/* CodeMirror sizing */
+.cm-editor {
+  height: 100%;
+}
+.cm-scroller {
+  font-family: "JetBrains Mono", ui-monospace, monospace !important;
+}
