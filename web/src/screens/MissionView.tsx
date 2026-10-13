@@ -1,7 +1,7 @@
 // A mission: story → intuition → formal → example → challenge (editor, console, tests)
 // → hints → common errors → solution → interpretation → advanced challenge → review advice.
 import { useEffect, useMemo, useRef, useState } from "react";
-import { missionById, MISSIONS, previousStage, seriesStages, stageStartCode } from "../content";
+import { missionById, MISSIONS, previousStage, seriesStages, stageLabel, stageStartCode } from "../content";
 import { text, type Mission } from "../content/types";
 import { worldById } from "../content/worlds";
 import { CodeEditor } from "../components/CodeEditor";
@@ -159,7 +159,7 @@ function StageBanner({ m }: { m: Mission }) {
                 className={`chip ${current ? "bg-gold text-ink" : done ? "text-leaf" : "text-muted"}`}
               >
                 {done ? "✔ " : ""}
-                {st.series!.stage}. {st.title.replace(/^.*?:\s*/, "")}
+                {st.series!.stage}. {stageLabel(st)}
               </a>
             </li>
           );

@@ -41,3 +41,9 @@ export const stageStartCode = (m: Mission, carried?: string): string => {
   if (!prev) return m.starter;
   return `${(carried ?? prev.solution).trimEnd()}\n\n${m.starter}`;
 };
+
+/** Short stage name from a stage title ("Proyecto · 2: tabla 1 y …" → "Tabla 1 y …"). */
+export const stageLabel = (m: Mission) => {
+  const s = m.title.replace(/^.*?:\s*/, "");
+  return s.charAt(0).toUpperCase() + s.slice(1);
+};

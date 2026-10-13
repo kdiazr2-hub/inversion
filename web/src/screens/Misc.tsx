@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { missionById, MISSIONS, seriesStages, WORLDS } from "../content";
+import { missionById, MISSIONS, seriesStages, stageLabel, WORLDS } from "../content";
 import { text, type WorldId } from "../content/types";
 import { worldById } from "../content/worlds";
 import { EDITOR_THEMES } from "../components/CodeEditor";
@@ -239,7 +239,7 @@ export function Projects() {
                 <ol className="text-sm flex flex-col gap-1">
                   {stages.map((st) => (
                     <li key={st.id} className={isDone(st.id) ? "text-leaf" : st === next ? "" : "text-muted"}>
-                      {isDone(st.id) ? "✔" : `${st.series!.stage}.`} <a className="underline decoration-dotted" href={href(`mision/${st.id}`)}>{st.title.replace(/^.*?:\s*/, "")}</a>
+                      {isDone(st.id) ? "✔" : `${st.series!.stage}.`} <a className="underline decoration-dotted" href={href(`mision/${st.id}`)}>{stageLabel(st)}</a>
                     </li>
                   ))}
                 </ol>
