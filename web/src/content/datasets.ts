@@ -326,6 +326,34 @@ export function mensajesCsv(): string {
   return toCsv(["id", "texto", "categoria"], rows);
 }
 
+/** Daily electricity demand (MWh) for three years: trend, weekly and yearly cycles, temperature, holidays. */
+export const FESTIVOS = ["01-01", "01-06", "05-01", "08-15", "10-12", "11-01", "12-06", "12-08", "12-25"];
+
+export function demandaCsv(): string {
+  const r = rng(6020);
+  const rows: (string | number | null)[][] = [];
+  const inicio = Date.UTC(2022, 0, 1);
+  const dias = 3 * 365 + 1; // 2022-2024 (2024 is a leap year)
+  let ruido = 0;
+  for (let d = 0; d < dias; d++) {
+    const fecha = new Date(inicio + d * 86_400_000);
+    const iso = fecha.toISOString().slice(0, 10);
+    const diaAnio = Math.floor((Date.UTC(fecha.getUTCFullYear(), fecha.getUTCMonth(), fecha.getUTCDate()) - Date.UTC(fecha.getUTCFullYear(), 0, 1)) / 86_400_000);
+    const temp = 15 + 9 * Math.sin(((diaAnio - 110) / 365) * 2 * Math.PI) + r.normal(0, 2.5);
+    const semana = fecha.getUTCDay(); // 0 = domingo
+    const festivo = FESTIVOS.includes(iso.slice(5));
+    let demanda = 620 + 0.06 * d; // slow growth
+    demanda += semana === 0 ? -95 : semana === 6 ? -60 : 0;
+    demanda += 0.9 * (temp - 17) ** 2; // heating and cooling: U-shaped in temperature
+    if (festivo) demanda -= 85;
+    ruido = 0.5 * ruido + r.normal(0, 14); // autocorrelated noise
+    demanda += ruido;
+    const falta = r.next() < 0.008;
+    rows.push([iso, falta ? null : Math.round(demanda * 10) / 10, Math.round(temp * 10) / 10]);
+  }
+  return toCsv(["fecha", "demanda_mwh", "temperatura"], rows);
+}
+
 export const DATASETS = [
   { file: "ventas.csv", title: "Ventas de la tienda del reino", make: ventasCsv, description: "Pedidos de 120 días: región, producto, unidades y precio. Contiene faltantes, duplicados, etiquetas inconsistentes y un atípico." },
   { file: "pacientes.csv", title: "Ensayo clínico sintético", make: pacientesCsv, description: "160 pacientes asignados alternadamente a control o tratamiento; presión arterial sistólica antes y después, y un evento binario. Datos inventados con fines educativos." },
@@ -336,6 +364,7 @@ export const DATASETS = [
   { file: "sensores_etiquetas.csv", title: "Etiquetas de anomalías", make: sensoresEtiquetasCsv, description: "Para cada hora y sensor, si la lectura era una anomalía real. Solo para evaluar detectores." },
   { file: "viviendas.csv", title: "Precios de viviendas", make: viviendasCsv, description: "1500 viviendas ficticias: barrio, superficie, habitaciones, baños, antigüedad, planta, ascensor, distancia al centro y precio (miles de euros). Con faltantes y algunos errores de tecleo." },
   { file: "mensajes.csv", title: "Mensajes de clientes", make: mensajesCsv, description: "900 mensajes ficticios a la tienda del reino, etiquetados como facturación, envío, producto defectuoso o cuenta (clases desequilibradas y un 3 % de etiquetas erróneas)." },
+  { file: "demanda.csv", title: "Demanda eléctrica diaria", make: demandaCsv, description: "Demanda de electricidad (MWh) y temperatura media diarias de 2022 a 2024 en una región ficticia: tendencia, ciclo semanal, efecto de la temperatura, festivos y algunos días sin dato." },
   { file: "clima.csv", title: "Clima diario", make: climaCsv, description: "Temperatura y lluvia diarias de un año en una ciudad imaginaria, con estacionalidad." },
 ] as const;
 
