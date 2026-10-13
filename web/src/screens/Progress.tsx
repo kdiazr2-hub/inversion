@@ -1,5 +1,5 @@
 // Learning statistics. Every number is computed from the stored history; nothing decorative.
-import { missionById, MISSIONS, WORLDS } from "../content";
+import { missionById, MISSIONS, seriesStages, WORLDS } from "../content";
 import { ChartCard, fmt, HBars, SERIES, XYChart } from "../components/Charts";
 import { PixelIcon } from "../components/pixel";
 import { ACHIEVEMENTS, missionReward, misconceptionStats, MISCONCEPTIONS, skillMastery, worldProgress } from "../engine/derive";
@@ -43,7 +43,8 @@ export function Progress() {
   const miscon = misconceptionStats(state, MISSIONS);
   const errorsByType = new Map<string, number>();
   for (const a of state.attempts) if (a.err) errorsByType.set(a.err, (errorsByType.get(a.err) ?? 0) + 1);
-  const projects = MISSIONS.filter((m) => m.kind === "project");
+  // Progressive projects appear once (first stage) with their stage count.
+  const projects = MISSIONS.filter((m) => m.kind === "project" && (!m.series || m.series.stage === 1));
 
   const tiles = [
     { label: "Nivel", value: String(summary.level.level), sub: `${summary.xp} XP en total` },
@@ -186,14 +187,20 @@ export function Progress() {
         <div className="px-panel p-4">
           <h2 className="font-bold mb-2">Proyectos y evaluaciones</h2>
           <ul className="flex flex-col gap-2 text-sm">
-            {projects.map((p) => (
-              <li key={p.id} className="flex justify-between gap-2">
-                <a className="text-sky underline" href={href(`mision/${p.id}`)}>
-                  {p.title}
-                </a>
-                <span className={state.missions[p.id]?.done ? "text-leaf" : "text-muted"}>{state.missions[p.id]?.done ? "Terminado" : "Pendiente"}</span>
-              </li>
-            ))}
+            {projects.map((p) => {
+              const stages = p.series ? seriesStages(p.series.id) : [p];
+              const done = stages.filter((st) => state.missions[st.id]?.done).length;
+              return (
+                <li key={p.id} className="flex justify-between gap-2">
+                  <a className="text-sky underline" href={href(`mision/${p.id}`)}>
+                    {p.series ? p.series.title : p.title}
+                  </a>
+                  <span className={done === stages.length ? "text-leaf" : "text-muted"}>
+                    {done === stages.length ? "Terminado" : p.series ? `${done}/${stages.length} etapas` : "Pendiente"}
+                  </span>
+                </li>
+              );
+            })}
             {state.placement && <li className="text-muted">Evaluación inicial: {state.placement.worlds.length ? "superada" : "omitida"} ({dayKey(state.placement.at)})</li>}
           </ul>
         </div>

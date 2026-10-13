@@ -293,7 +293,7 @@ export function MissionView({ id, review }: { id: string; review: boolean }) {
   const errorLine = out && "result" in out ? out.result.error?.line ?? null : null;
   const running = runner.state === "running" || runner.state === "packages" || busy;
 
-  const useReferenceCarry = () => {
+  const startFromReference = () => {
     if (!confirmCarry) {
       setConfirmCarry(true);
       setTimeout(() => setConfirmCarry(false), 3000);
@@ -315,7 +315,7 @@ export function MissionView({ id, review }: { id: string; review: boolean }) {
             Tu editor empieza con <strong>tu código de la etapa anterior</strong> («{prevStage.title}») y, debajo, el esqueleto de esta etapa. Las pruebas de esta etapa pueden usar las funciones que ya escribiste.
           </p>
           <div>
-            <button className="btn-ghost text-sm" onClick={useReferenceCarry}>
+            <button className="btn-ghost text-sm" onClick={startFromReference}>
               {confirmCarry ? "Pulsa otra vez: se reemplaza tu código" : "Empezar desde la solución de referencia de la etapa anterior"}
             </button>
           </div>

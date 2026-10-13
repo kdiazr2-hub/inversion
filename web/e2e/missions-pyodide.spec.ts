@@ -3,7 +3,7 @@
 // Missions that import numpy/pandas/scipy… need the Pyodide CDN and are validated by pytest instead.
 import { expect, test } from "@playwright/test";
 import { readFileSync } from "node:fs";
-import { servePyodideLocally } from "./pyodide";
+import { FULL_DISTRIBUTION, servePyodideLocally } from "./pyodide";
 
 interface M {
   id: string;
@@ -17,13 +17,14 @@ const solo = process.env.PQ_MISSIONS?.split(",");
 // Packages from the Pyodide distribution (downloaded from the CDN on first import), whether the
 // student's code or the mission's tests import them.
 const CIENTIFICOS = /^\s*(?:import|from)\s+(?:numpy|pandas|scipy|sklearn|statsmodels|matplotlib|seaborn)\b/m;
+// With the full distribution every mission runs; otherwise only those without scientific packages.
 const puras = content.missions.filter(
-  (m) => !m.packages?.length && !CIENTIFICOS.test(m.solution) && !CIENTIFICOS.test(m.tests) && (!solo || solo.includes(m.id)),
+  (m) => (FULL_DISTRIBUTION || (!m.packages?.length && !CIENTIFICOS.test(m.solution) && !CIENTIFICOS.test(m.tests))) && (!solo || solo.includes(m.id)),
 );
 
 test.describe.configure({ mode: "serial" });
 
-test(`las ${puras.length} misiones de Python puro pasan en Pyodide`, async ({ page, context }, info) => {
+test(`las ${puras.length} misiones ${FULL_DISTRIBUTION ? "" : "de Python puro "}pasan en Pyodide`, async ({ page, context }, info) => {
   test.skip(info.project.name !== "desktop", "Solo en escritorio: es lento");
   test.setTimeout(30 * 60_000);
   await servePyodideLocally(context);
@@ -41,7 +42,7 @@ test(`las ${puras.length} misiones de Python puro pasan en Pyodide`, async ({ pa
     labs: {},
     placement: null,
     certificates: {},
-    settings: { editorTheme: "noche", fontSize: 15, reducedMotion: true, dailyGoalMin: 15, timeoutSec: 60, pauses: [] },
+    settings: { editorTheme: "noche", fontSize: 15, reducedMotion: true, dailyGoalMin: 15, timeoutSec: 15, pauses: [] },
     totalRuns: 1,
   };
   await page.addInitScript((s) => localStorage.setItem("python-quest-save-v1", s), JSON.stringify(save));
@@ -57,7 +58,7 @@ test(`las ${puras.length} misiones de Python puro pasan en Pyodide`, async ({ pa
     await page.getByTestId("check").click();
     const tests = page.getByTestId("tests");
     const error = page.getByTestId("py-error");
-    await expect(tests.or(error).or(page.getByRole("alert")).first()).toBeVisible({ timeout: 120_000 });
+    await expect(tests.or(error).or(page.getByRole("alert")).first()).toBeVisible({ timeout: 180_000 });
     const salida = page.getByTestId("output").or(page.getByRole("alert")).first();
     const texto = (await salida.innerText({ timeout: 5_000 }).catch(() => "")) || "";
     const m2 = texto.match(/Pruebas: (\d+) \/ (\d+)/i);

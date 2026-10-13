@@ -31,7 +31,7 @@ Editor (CodeMirror) ──► python.run({code, tests, stdin, files})          s
                   resultado JSON ──► consola, pruebas, figuras, recompensas
 ```
 
-- **Tiempo límite** (configurable, 15 s por defecto): empieza cuando los paquetes ya están descargados. Si se supera, o el alumno pulsa «Detener», se termina el worker y se arranca otro.
+- **Tiempo límite** (configurable, 15 s por defecto): empieza cuando los paquetes ya están descargados **e importados**. El worker importa antes los módulos científicos que el código usa (`pq_harness.warm_imports`): en Pyodide, importar pandas y scikit-learn la primera vez cuesta unos 6 s, que no deben contar como un posible bucle infinito. Si se supera, o el alumno pulsa «Detener», se termina el worker y se arranca otro.
 - **Aislamiento**: el código del alumno corre en el navegador del propio alumno, en un worker sin acceso al DOM. No hay ejecución en servidor. Si en el futuro se añade un backend de ejecución, debe ir en contenedores efímeros sin red, con límites de CPU, memoria y tiempo, separados del servidor principal.
 - **Paquetes**: `loadPackagesFromImports` descarga numpy, pandas, scipy, scikit-learn, statsmodels, matplotlib o sqlite3 la primera vez que se importan. `seaborn` se instala con micropip (no está en la distribución de Pyodide).
 
@@ -51,13 +51,20 @@ Las pruebas son funciones `test_*` escritas en Python. Reciben el programa del a
 
 Las pruebas comprueban **comportamiento** (resultados con varias entradas, efectos sobre archivos, propiedades estadísticas) y solo recurren a la salida exacta cuando el reto es precisamente imprimir.
 
+## Proyectos progresivos y enlaces a laboratorios
+
+- `Mission.series = { id, title, stage, of }` convierte una misión de tipo proyecto en la etapa *n* de una serie. El editor de la etapa *n* > 1 empieza con el código que el alumno escribió en la etapa anterior seguido del esqueleto nuevo (`stageStartCode`); también puede partir de la solución de referencia de la etapa anterior. Las pruebas de una etapa pueden usar las funciones de las anteriores.
+- En el contenido, la solución de la etapa *n* es la de la etapa *n* − 1 más el código nuevo. pytest comprueba que el código heredado más el esqueleto todavía no pasa y que la solución no rompe las pruebas de la etapa anterior.
+- `Mission.lab = { lab, tab, label }` muestra en la lección un botón al simulador correspondiente (`#/labs/<lab>/<pestaña>`). Las pestañas existentes están en `content/labs.ts` y pytest valida cada enlace.
+
 ## Motor del juego (`web/src/engine`)
 
 - `state.ts`: esquema `SaveState` con **zod** (validación al cargar e importar).
 - `derive.ts`: funciones puras para recompensas, niveles (curva 50·L·(L−1)), rachas (un día de descanso por cada 7 activos, máximo 2; pausas declaradas no cuentan; el día en curso no rompe la racha), repaso espaciado (SM-2 simplificado reconstruido desde el historial), errores conceptuales (desde las respuestas de interpretación), dominio por habilidad, desbloqueo de mundos y misiones, logros y recomendación de la siguiente acción.
 - `actions.ts`: transiciones puras (comprobar, pista, solución, interpretación, repaso, compra, ajustes, certificado).
 - `storage.ts`: `localStorage`, exportación/importación y **saneamiento**: se descartan misiones desconocidas, fechas futuras, repasos incoherentes, compras que las monedas ganadas no cubren y certificados de rutas incompletas.
-- `certificates.ts`: identificador `PQ-XXXX-XXXX-XXXX` = primeros 48 bits del SHA-256 de (nombre, ruta, fecha, registro de cada misión de la ruta). La verificación lo recalcula con el progreso guardado.
+- `certificates.ts`: identificador `PQ-XXXX-XXXX-XXXX` = primeros 48 bits del SHA-256 de (nombre, ruta, fecha, registro de cada misión de la ruta). El certificado guarda la lista de misiones de la ruta **en el momento de emitirse**, de modo que añadir contenido después no lo invalida. La verificación lo recalcula con el progreso guardado.
+- Añadir contenido tampoco debe quitar nada ya ganado: un mundo con alguna misión completada sigue desbloqueado aunque baje su fracción de desbloqueo, y los logros que dependían de «todas las misiones de X» se definen sobre misiones concretas.
 
 ### Reglas de recompensa
 
@@ -77,7 +84,7 @@ La solución de referencia solo se desbloquea tras dos comprobaciones o todas la
 - **Modo invitado** únicamente: el progreso vive en el navegador. La exportación JSON permite moverlo. Un atacante puede fabricar un JSON con eventos falsos coherentes; sin servidor no hay forma de impedirlo. Los certificados lo indican.
 - **PyTorch, TensorFlow, FastAPI y peticiones HTTP** no funcionan en el navegador: las misiones afectadas usan NumPy y simulaciones locales, y muestran el código equivalente como referencia.
 - `asyncio` y los hilos tienen soporte limitado en Pyodide; las misiones de ingeniería evitan depender de ellos.
-- Las pruebas extremo a extremo de este repositorio ejecutan en Pyodide las misiones de Python puro; las científicas se validan con CPython en las mismas versiones que trae Pyodide 0.28.3 (no hay acceso al CDN de paquetes en la integración continua).
+- La integración continua valida las misiones con CPython en las mismas versiones que trae Pyodide 0.28.3. La validación en Pyodide real (`scripts/validate-pyodide.mjs` y las pruebas de interfaz con `PYODIDE_DIST`) necesita descargar la distribución completa de Pyodide (unos 350 MB) y se ejecuta a mano.
 
 ## Cómo ampliarlo
 

@@ -59,6 +59,7 @@ def test_comportamiento():
       explanation: "Por qué la correcta lo es.",
     },
     advanced: { title: "…", prompt: "…", starter: py`…`, solution: py`…`, tests: py`…` }, // opcional
+    lab: { lab: "estadistica", tab: "intervalos", label: "Intervalos de confianza" },  // opcional: pestañas en content/labs.ts
     review: "Qué repasar más adelante.",
     xp: 80,
     coins: 12,
@@ -74,3 +75,31 @@ def test_comportamiento():
 - Los errores conceptuales disponibles están en `Misconception` (`web/src/content/types.ts`) y su explicación en `MISCONCEPTIONS` (`web/src/engine/derive.ts`).
 - Para un mundo nuevo, añade su definición en `web/src/content/worlds.ts` (nombre, tema visual, temario, condición de desbloqueo y certificado).
 - Los datasets sintéticos compartidos están en `web/src/content/datasets.ts`; también aparecen en el Laboratorio de datos.
+
+## Proyectos progresivos
+
+Un proyecto por etapas es una serie de misiones de tipo `"project"` con el campo `series` (ver `content/missions/proj-ensayo.ts`):
+
+```ts
+const SERIES = { id: "mi-proyecto", title: "Proyecto progresivo: …", of: 3 };
+const S1 = py`…código de la etapa 1…`;
+const S2 = py`…solo lo nuevo de la etapa 2…`;
+const SOL2 = `${S1}\n\n${S2}`;          // la solución de cada etapa amplía la anterior
+
+{ id: "mp-1", kind: "project", series: { ...SERIES, stage: 1 }, solution: S1, starter: py`…`, … },
+{ id: "mp-2", kind: "project", series: { ...SERIES, stage: 2 }, requires: ["mp-1"], solution: SOL2,
+  starter: py`…esqueleto solo de lo nuevo…`, … },
+```
+
+- El `starter` de la etapa *n* > 1 contiene **solo** lo nuevo: la interfaz lo coloca debajo del código que el alumno escribió en la etapa anterior.
+- Las pruebas de una etapa pueden usar lo definido en las anteriores (`t.get("datos")`…). Calcula los valores esperados de forma independiente dentro de la prueba.
+- pytest exige: etapas consecutivas con el mismo título y mundo, que cada etapa requiera la anterior, que la solución empiece por la de la etapa previa, que «código heredado + esqueleto» no pase todavía y que la nueva solución siga pasando las pruebas de la etapa anterior.
+
+## Validar en Pyodide
+
+Además de pytest (CPython), conviene ejecutar las misiones nuevas en el intérprete real del navegador, que también avisa si alguna tarda más de 5 s:
+
+```bash
+cd web
+PYODIDE_DIST=/ruta/a/pyodide node scripts/validate-pyodide.mjs mi-nueva-mision
+```
