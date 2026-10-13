@@ -19,6 +19,8 @@ async function init(indexURL: string, harness: string) {
 import sys, json
 sys.path.insert(0, "/home/pyodide/pq")
 import pq_harness
+def pq_warm(names_json):
+    return json.dumps(pq_harness.warm_imports(json.loads(names_json)))
 def pq_run(payload):
     p = json.loads(payload)
     return json.dumps(pq_harness.run(p["code"], p.get("tests", ""), p.get("stdin"), p.get("files")))
@@ -32,6 +34,8 @@ def pq_run(payload):
 // Packages that live on PyPI rather than in the Pyodide distribution.
 const MICROPIP = ["seaborn"];
 const installed = new Set<string>();
+const HEAVY = /^(numpy|pandas|scipy|sklearn|statsmodels|matplotlib|seaborn)(\.|$)/;
+const warmed = new Set<string>();
 
 async function run(msg: Extract<WorkerIn, { kind: "run" }>) {
   const { id, code, tests = "", stdin = [], files = {} } = msg;
@@ -51,6 +55,14 @@ async function run(msg: Extract<WorkerIn, { kind: "run" }>) {
       await py.loadPackage("micropip");
       await py.pyimport("micropip").install(extra);
       extra.forEach((m) => installed.add(m));
+    }
+    // First imports of numpy/pandas/scikit-learn take seconds: do them before the run clock starts.
+    const heavy = imports.filter((m) => HEAVY.test(m) && !warmed.has(m));
+    if (heavy.length) {
+      post({ kind: "status", id, phase: "packages", detail: `preparando ${heavy.map((m) => m.split(".")[0]).filter((v, i, a) => a.indexOf(v) === i).join(", ")}` });
+      const warm = py.globals.get("pq_warm");
+      (JSON.parse(warm(JSON.stringify(heavy))) as string[]).forEach((m) => warmed.add(m));
+      warm.destroy();
     }
     post({ kind: "status", id, phase: "running" });
     const t0 = performance.now();

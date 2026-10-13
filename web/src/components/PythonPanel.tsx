@@ -20,7 +20,7 @@ export function RunnerStatus() {
     idle: "Python se cargará al ejecutar",
     loading: "Cargando Python (Pyodide)… la primera vez tarda unos segundos",
     ready: `Python listo · Pyodide ${PYODIDE_VERSION}`,
-    packages: `Descargando paquetes: ${detail}`,
+    packages: detail.startsWith("preparando ") ? `Preparando bibliotecas: ${detail.slice(11)}…` : `Descargando paquetes: ${detail}`,
     running: "Ejecutando…",
     error: `Python no pudo iniciarse: ${detail}`,
   };

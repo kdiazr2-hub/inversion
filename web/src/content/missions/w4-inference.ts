@@ -119,6 +119,7 @@ def test_mv():
   },
   {
     id: "i-intervalos",
+    lab: { lab: "estadistica", tab: "intervalos", label: "Intervalos de confianza" },
     world: "w4",
     zone: "Inferencia",
     title: "La red del pescador: intervalos de confianza",
@@ -265,6 +266,7 @@ def test_n():
   },
   {
     id: "i-pruebas",
+    lab: { lab: "estadistica", tab: "potencia", label: "Errores y potencia" },
     world: "w4",
     zone: "Inferencia",
     title: "El tribunal de la hipótesis nula: pruebas de hipótesis y valor p",
@@ -789,6 +791,7 @@ def test_kruskal():
   },
   {
     id: "i-potencia",
+    lab: { lab: "estadistica", tab: "potencia", label: "Errores y potencia" },
     world: "w4",
     zone: "Inferencia",
     title: "Los centinelas del error: tipo I, tipo II, potencia y comparaciones múltiples",
@@ -918,6 +921,7 @@ def test_multiples():
   },
   {
     id: "r-correlacion",
+    lab: { lab: "estadistica", tab: "regresion", label: "Regresión y correlación" },
     world: "w4",
     zone: "Correlación y regresión",
     title: "Los hilos invisibles: correlación, atípicos y causalidad",
@@ -1072,6 +1076,7 @@ def test_parcial():
   },
   {
     id: "r-lineal",
+    lab: { lab: "estadistica", tab: "regresion", label: "Regresión y correlación" },
     world: "w4",
     zone: "Correlación y regresión",
     title: "La recta del astrónomo: regresión lineal simple y múltiple",
@@ -1340,6 +1345,7 @@ def test_texto():
   },
   {
     id: "b-beta-binomial",
+    lab: { lab: "estadistica", tab: "bayes", label: "Actualización bayesiana" },
     world: "w4",
     zone: "Estadística bayesiana",
     title: "El búho que actualiza: inferencia bayesiana conjugada",
@@ -1967,6 +1973,7 @@ def test_resumen():
   },
   {
     id: "cl-diagnostico",
+    lab: { lab: "estadistica", tab: "diagnostico", label: "Pruebas diagnósticas" },
     world: "w4",
     zone: "Estadística clínica",
     title: "La prueba del oráculo: sensibilidad, especificidad, valores predictivos y ROC",
@@ -2120,6 +2127,7 @@ def test_youden():
   },
   {
     id: "cl-supervivencia",
+    lab: { lab: "estadistica", tab: "km", label: "Kaplan-Meier" },
     world: "w4",
     zone: "Estadística clínica",
     title: "El reloj de la vida: análisis de supervivencia, Kaplan-Meier y log-rank",

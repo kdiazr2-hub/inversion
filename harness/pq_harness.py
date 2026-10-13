@@ -15,6 +15,7 @@ import ast
 import base64
 import builtins
 import contextlib
+import importlib
 import io
 import math
 import os
@@ -194,6 +195,30 @@ def _collect_figures():
 def _close_figures():
     if "matplotlib.pyplot" in sys.modules:
         sys.modules["matplotlib.pyplot"].close("all")
+
+
+# Scientific packages take seconds to import the first time (pandas ≈ 3 s, scikit-learn ≈ 3 s
+# in Pyodide). Importing them before the run lets the infinite-loop clock measure only the
+# learner's code.
+HEAVY_PACKAGES = ("numpy", "pandas", "scipy", "sklearn", "statsmodels", "matplotlib", "seaborn")
+
+
+def warm_imports(names):
+    """Import the heavy scientific modules among ``names``; returns those now imported.
+
+    Errors are ignored here: the learner's own import will raise them with a friendly message.
+    """
+    os.environ.setdefault("MPLBACKEND", "Agg")
+    done = []
+    for name in names:
+        if name.split(".")[0] not in HEAVY_PACKAGES:
+            continue
+        try:
+            importlib.import_module(name)
+            done.append(name)
+        except Exception:  # noqa: BLE001
+            pass
+    return done
 
 
 def run(code, tests="", stdin=None, files=None):

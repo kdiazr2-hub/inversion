@@ -11,6 +11,13 @@ WEB = ROOT / "web"
 sys.path.insert(0, str(ROOT / "harness"))
 os.environ.setdefault("MPLBACKEND", "Agg")
 
+# Warm-up: the first matplotlib figure in a fresh environment builds the font cache, which can
+# take longer than the per-mission time limit used by the content tests.
+import matplotlib.pyplot as _plt  # noqa: E402
+
+_plt.figure()
+_plt.close("all")
+
 
 def _export():
     # Always re-export so the tests see the current TypeScript content.

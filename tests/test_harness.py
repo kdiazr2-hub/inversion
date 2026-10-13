@@ -66,3 +66,10 @@ def test_broken_test_module_is_reported_not_raised():
     r = pq_harness.run("x = 1", "import paquete_inexistente\n\ndef test_x():\n    assert True\n")
     assert r["error"] is None and not r["passed"]
     assert r["tests"][0]["name"] == "preparar_pruebas" and "No es un fallo de tu código" in r["tests"][0]["message"]
+
+
+def test_warm_imports_only_heavy_packages():
+    import sys
+    done = pq_harness.warm_imports(["numpy", "os", "json", "numpy.linalg", "paquete_inexistente", "scipy.no_existe"])
+    assert done == ["numpy", "numpy.linalg"]
+    assert "numpy.linalg" in sys.modules

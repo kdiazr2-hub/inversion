@@ -29,15 +29,30 @@ py.runPython(`
 import sys, json
 sys.path.insert(0, "/home/pyodide/pq")
 import pq_harness
+def pq_warm(names_json):
+    return json.dumps(pq_harness.warm_imports(json.loads(names_json)))
 def pq_run(payload):
     p = json.loads(payload)
     return json.dumps(pq_harness.run(p["code"], p.get("tests", ""), p.get("stdin"), p.get("files")))
 `);
 const pqRun = py.globals.get("pq_run");
+const pqWarm = py.globals.get("pq_warm");
+
+// Runs slower than this (package downloads excluded) risk the browser's default 15 s limit.
+const SLOW_MS = 5000;
+const slow = [];
+let current = "";
 
 async function run(code, tests, stdin, files) {
-  await py.loadPackagesFromImports(code + "\n" + (tests ?? ""), { messageCallback: () => {}, errorCallback: (e) => console.error(e) });
-  return JSON.parse(pqRun(JSON.stringify({ code, tests: tests ?? "", stdin: stdin ?? [], files: files ?? {} })));
+  const source = code + "\n" + (tests ?? "");
+  await py.loadPackagesFromImports(source, { messageCallback: () => {}, errorCallback: (e) => console.error(e) });
+  // Same as the browser worker: heavy imports happen before the clock starts.
+  pqWarm(JSON.stringify(py.pyodide_py.code.find_imports(source).toJs()));
+  const t0 = performance.now();
+  const out = JSON.parse(pqRun(JSON.stringify({ code, tests: tests ?? "", stdin: stdin ?? [], files: files ?? {} })));
+  const ms = performance.now() - t0;
+  if (ms > SLOW_MS) slow.push(`${current}: ${(ms / 1000).toFixed(1)} s`);
+  return out;
 }
 
 const describe = (r) =>
@@ -55,6 +70,7 @@ for (const m of selected) {
   if (m.advanced)
     checks.push(["avanzado", () => run(m.advanced.solution, m.advanced.tests, m.advanced.stdin ?? m.stdin, m.files), (r) => r.passed]);
   for (const [what, exec, ok] of checks) {
+    current = `${m.id} · ${what}`;
     let r;
     try {
       r = await exec();
@@ -66,6 +82,7 @@ for (const m of selected) {
   process.stdout.write(".");
 }
 console.log(`\n${selected.length} misiones en Pyodide ${py.version} · ${((Date.now() - t0) / 1000).toFixed(0)} s`);
+if (slow.length) console.log(`\nEjecuciones lentas (> ${SLOW_MS / 1000} s):\n` + slow.join("\n"));
 if (failures.length) {
   console.log(`\n${failures.length} fallos:\n` + failures.join("\n"));
   process.exit(1);

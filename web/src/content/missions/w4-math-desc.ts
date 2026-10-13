@@ -353,6 +353,7 @@ def test_jaccard():
   },
   {
     id: "m-derivadas",
+    lab: { lab: "matematicas", tab: "funciones", label: "Funciones y derivadas" },
     world: "w4",
     zone: "Matemáticas fundamentales",
     title: "La pendiente de la colina: funciones, límites y derivadas",
@@ -456,6 +457,7 @@ def test_diverge():
   },
   {
     id: "m-vectores",
+    lab: { lab: "matematicas", tab: "matrices", label: "Transformaciones lineales" },
     world: "w4",
     zone: "Matemáticas fundamentales",
     title: "Las flechas del astrolabio: vectores y matrices a mano",

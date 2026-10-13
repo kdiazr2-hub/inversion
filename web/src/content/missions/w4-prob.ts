@@ -5,6 +5,7 @@ import { py, type Mission } from "../types";
 export const W4_B: Mission[] = [
   {
     id: "p-reglas",
+    lab: { lab: "estadistica", tab: "monedas", label: "Monedas y dados" },
     world: "w4",
     zone: "Probabilidad",
     title: "Los dados del destino: espacio muestral y reglas",
@@ -344,6 +345,7 @@ def test_anagramas():
   },
   {
     id: "p-bayes",
+    lab: { lab: "estadistica", tab: "diagnostico", label: "Pruebas diagnósticas" },
     world: "w4",
     zone: "Probabilidad",
     title: "El oráculo de Bayes: probabilidad total y actualización",
@@ -627,6 +629,7 @@ def test_simular():
   },
   {
     id: "p-lgn-tcl",
+    lab: { lab: "estadistica", tab: "tcl", label: "Teorema central del límite" },
     world: "w4",
     zone: "Probabilidad",
     title: "Las mil tiradas: ley de los grandes números y teorema central del límite",
@@ -732,6 +735,7 @@ def test_asimetria():
   },
   {
     id: "d-discretas",
+    lab: { lab: "estadistica", tab: "distribuciones", label: "Distribuciones" },
     world: "w4",
     zone: "Distribuciones",
     title: "Los gremios de los conteos: Bernoulli, binomial, geométrica, Poisson e hipergeométrica",
@@ -860,6 +864,7 @@ def test_elegir():
   },
   {
     id: "d-normal",
+    lab: { lab: "estadistica", tab: "distribuciones", label: "Distribuciones" },
     world: "w4",
     zone: "Distribuciones",
     title: "La campana del observatorio: la distribución normal",
@@ -975,6 +980,7 @@ def test_normalidad():
   },
   {
     id: "d-continuas",
+    lab: { lab: "estadistica", tab: "distribuciones", label: "Distribuciones" },
     world: "w4",
     zone: "Distribuciones",
     title: "Los tiempos del reloj de arena: exponencial, uniforme, gamma, beta y lognormal",
@@ -1105,6 +1111,7 @@ def test_cola():
   },
   {
     id: "d-muestrales",
+    lab: { lab: "estadistica", tab: "tcl", label: "Teorema central del límite" },
     world: "w4",
     zone: "Distribuciones",
     title: "Las distribuciones de los jueces: t de Student, chi-cuadrado y F",
@@ -1368,6 +1375,7 @@ def test_sesgo():
   },
   {
     id: "s-error-estandar",
+    lab: { lab: "estadistica", tab: "tcl", label: "Teorema central del límite" },
     world: "w4",
     zone: "Muestreo",
     title: "La niebla de la estimación: distribución muestral y error estándar",
@@ -1497,6 +1505,7 @@ def test_de_vs_ee():
   },
   {
     id: "s-bootstrap",
+    lab: { lab: "estadistica", tab: "bootstrap", label: "Bootstrap" },
     world: "w4",
     zone: "Muestreo",
     title: "El espejo multiplicador: bootstrap y remuestreo",
