@@ -13,7 +13,13 @@ interface M {
 }
 
 const content = JSON.parse(readFileSync("content.json", "utf-8")) as { missions: M[] };
-const puras = content.missions.filter((m) => !m.packages?.length);
+const solo = process.env.PQ_MISSIONS?.split(",");
+// Packages from the Pyodide distribution (downloaded from the CDN on first import), whether the
+// student's code or the mission's tests import them.
+const CIENTIFICOS = /^\s*(?:import|from)\s+(?:numpy|pandas|scipy|sklearn|statsmodels|matplotlib|seaborn)\b/m;
+const puras = content.missions.filter(
+  (m) => !m.packages?.length && !CIENTIFICOS.test(m.solution) && !CIENTIFICOS.test(m.tests) && (!solo || solo.includes(m.id)),
+);
 
 test.describe.configure({ mode: "serial" });
 
@@ -41,6 +47,7 @@ test(`las ${puras.length} misiones de Python puro pasan en Pyodide`, async ({ pa
   await page.addInitScript((s) => localStorage.setItem("python-quest-save-v1", s), JSON.stringify(save));
   const fallos: string[] = [];
   for (const m of puras) {
+    const t0 = Date.now();
     await page.goto(`/#/mision/${m.id}`);
     const editor = page.getByRole("textbox", { name: /Editor de Python/ });
     await editor.click();
@@ -51,9 +58,12 @@ test(`las ${puras.length} misiones de Python puro pasan en Pyodide`, async ({ pa
     const tests = page.getByTestId("tests");
     const error = page.getByTestId("py-error");
     await expect(tests.or(error).or(page.getByRole("alert")).first()).toBeVisible({ timeout: 120_000 });
-    const texto = (await page.getByTestId("output").innerText().catch(() => "")) || "";
-    const m2 = texto.match(/Pruebas: (\d+) \/ (\d+)/);
-    if (!m2 || m2[1] !== m2[2]) fallos.push(`${m.id}: ${texto.slice(0, 400)}`);
+    const salida = page.getByTestId("output").or(page.getByRole("alert")).first();
+    const texto = (await salida.innerText({ timeout: 5_000 }).catch(() => "")) || "";
+    const m2 = texto.match(/Pruebas: (\d+) \/ (\d+)/i);
+    const ok = !!m2 && m2[1] === m2[2];
+    if (!ok) fallos.push(`${m.id}: ${texto.slice(0, 400)}`);
+    console.log(`${ok ? "ok  " : "FALLA"} ${m.id} (${((Date.now() - t0) / 1000).toFixed(1)} s)`);
   }
   expect(fallos, fallos.join("\n\n")).toEqual([]);
 });

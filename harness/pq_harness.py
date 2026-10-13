@@ -223,7 +223,22 @@ def run(code, tests="", stdin=None, files=None):
             ctx = TestContext(code, compiled, ns, out, stdin, _collect_figures)
             # Tests see the student's program through the global `t` (a TestContext).
             test_ns = {"approx": approx, "math": math, "t": ctx}
-            exec(compile(tests, "<pruebas>", "exec"), test_ns)
+            try:
+                exec(compile(tests, "<pruebas>", "exec"), test_ns)
+            except Exception as exc:  # noqa: BLE001
+                # The test module itself failed (typically a package that could not be downloaded):
+                # report it as a failed check that is clearly not the student's fault.
+                result["tests"].append({
+                    "name": "preparar_pruebas",
+                    "description": "Preparar las pruebas",
+                    "passed": False,
+                    "message": (
+                        f"Las pruebas no pudieron cargarse ({type(exc).__name__}: {exc}). "
+                        "No es un fallo de tu código: suele ocurrir cuando un paquete no se pudo descargar. "
+                        "Comprueba tu conexión y vuelve a comprobar."
+                    ),
+                })
+                test_ns = {}
             for name, fn in list(test_ns.items()):
                 if not (name.startswith("test_") and callable(fn)):
                     continue

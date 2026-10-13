@@ -60,3 +60,9 @@ def test_static_checks():
     tests = "def test_for():\n    assert t.uses('For') and t.calls('print')\n"
     assert pq_harness.run("for i in range(2):\n    print(i)", tests)["passed"]
     assert not pq_harness.run("print(0)\nprint(1)", tests)["passed"]
+
+
+def test_broken_test_module_is_reported_not_raised():
+    r = pq_harness.run("x = 1", "import paquete_inexistente\n\ndef test_x():\n    assert True\n")
+    assert r["error"] is None and not r["passed"]
+    assert r["tests"][0]["name"] == "preparar_pruebas" and "No es un fallo de tu código" in r["tests"][0]["message"]
