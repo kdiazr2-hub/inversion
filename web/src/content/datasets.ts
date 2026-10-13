@@ -98,11 +98,136 @@ export function clientesCsv(): string {
   return toCsv(["cliente", "contrato", "antiguedad_meses", "cuota_mensual", "llamadas_soporte", "fibra", "gasto_total", "baja"], rows);
 }
 
+/** Two-arm cholesterol trial: randomised in blocks, with dropouts and data-entry problems. */
+export function ensayoCsv(): string {
+  const r = rng(4242);
+  const rows: (string | number | null)[][] = [];
+  const centros = ["A", "B", "C"];
+  let id = 1;
+  for (let bloque = 0; bloque < 60; bloque++) {
+    // Permuted blocks of 4 (2 + 2) keep the arms balanced over time.
+    const brazos = ["placebo", "placebo", "farmaco", "farmaco"];
+    for (let i = 3; i > 0; i--) {
+      const j = r.int(0, i);
+      [brazos[i], brazos[j]] = [brazos[j], brazos[i]];
+    }
+    for (const brazo of brazos) {
+      const centro = centros[r.int(0, 2)];
+      const edad = Math.round(Math.min(80, Math.max(35, r.normal(58, 9))));
+      const mujer = r.next() < 0.47;
+      const imc = r2(Math.max(18, r.normal(28, 4)));
+      const basal = Math.round(r.normal(165 + 0.3 * (edad - 58) + (centro === "C" ? 6 : 0), 22));
+      const efecto = brazo === "farmaco" ? -24 : -6;
+      const final = Math.round(basal + efecto + 0.1 * (imc - 28) + r.normal(0, 21));
+      // Dropout more likely with side effects (more frequent with the drug) and in centre B.
+      const adverso = r.next() < (brazo === "farmaco" ? 0.16 : 0.07) ? 1 : 0;
+      const abandono = r.next() < 0.05 + 0.25 * adverso + (centro === "B" ? 0.04 : 0);
+      const sexo = mujer ? (r.next() < 0.06 ? "f" : "F") : r.next() < 0.06 ? "m" : "M";
+      // Typing errors in the age of two patients.
+      const edadCelda = id === 17 ? 999 : id === 133 ? -1 : edad;
+      rows.push([id, centro, brazo, edadCelda, sexo, imc, basal, abandono ? null : final, adverso]);
+      if (r.next() < 0.012 || id === 58) rows.push([...rows[rows.length - 1]]); // duplicated row
+      id++;
+    }
+  }
+  return toCsv(["id", "centro", "brazo", "edad", "sexo", "imc", "ldl_basal", "ldl_12s", "evento_adverso"], rows);
+}
+
+/** Hourly temperature of two sensors for 60 days with injected anomalies (labels in sensoresEtiquetasCsv). */
+function sensoresData() {
+  const r = rng(1312);
+  type Row = { t: number; sensor: string; v: number | string | null; anom: number };
+  const out: Row[] = [];
+  const start = Date.UTC(2025, 2, 1);
+  for (const [sensor, base, amp] of [["S1", 21, 3], ["S2", 18, 5]] as [string, number, number][]) {
+    let stuck = 0;
+    let stuckVal = 0;
+    for (let h = 0; h < 60 * 24; h++) {
+      const hour = h % 24;
+      let v = base + amp * Math.sin(((hour - 9) / 24) * 2 * Math.PI) + r.normal(0, 0.6) + 0.01 * (h / 24);
+      let anom = 0;
+      if (stuck > 0) {
+        v = stuckVal;
+        stuck--;
+        anom = 1;
+      } else if (r.next() < 0.004) {
+        v += (r.next() < 0.5 ? -1 : 1) * (6 + 6 * r.next()); // spike
+        anom = 1;
+      } else if (r.next() < 0.0015) {
+        stuck = 5 + r.int(0, 6); // stuck sensor: repeats a value for several hours
+        stuckVal = r2(v);
+      } else if (r.next() < 0.004 && (hour < 5 || hour > 21)) {
+        v += 5.5 + 2 * r.next(); // contextual: normal by day, abnormal at night
+        anom = 1;
+      }
+      out.push({ t: start + h * 3600_000, sensor, v: r2(v), anom });
+    }
+  }
+  return { out, r };
+}
+
+export function sensoresCsv(): string {
+  const { out, r } = sensoresData();
+  const rows: (string | number | null)[][] = [];
+  for (const row of out) {
+    const u = r.next();
+    if (u < 0.01) continue; // lost reading
+    const iso = new Date(row.t).toISOString().slice(0, 16).replace("T", " ");
+    rows.push([iso, row.sensor, u < 0.016 ? "ERR" : row.v]);
+    if (u > 0.995) rows.push([iso, row.sensor, row.v]); // duplicated message
+  }
+  // Messages arrive out of order: swap some neighbours.
+  for (let i = 1; i < rows.length; i++) if (r.next() < 0.02) [rows[i - 1], rows[i]] = [rows[i], rows[i - 1]];
+  return toCsv(["fecha_hora", "sensor", "temperatura"], rows);
+}
+
+export function sensoresEtiquetasCsv(): string {
+  const { out } = sensoresData();
+  return toCsv(
+    ["fecha_hora", "sensor", "anomalia"],
+    out.map((row) => [new Date(row.t).toISOString().slice(0, 16).replace("T", " "), row.sensor, row.anom]),
+  );
+}
+
+/** Housing prices with a skewed target, neighbourhood effects, missing values and a few typos. */
+export function viviendasCsv(): string {
+  const r = rng(808);
+  const barrios: [string, number, number][] = [
+    ["Centro", 1.55, 1.2],
+    ["Ensanche", 1.3, 2.8],
+    ["Universidad", 1.05, 3.5],
+    ["Puerto", 0.95, 5],
+    ["Afueras", 0.7, 9],
+  ];
+  const rows: (string | number | null)[][] = [];
+  for (let i = 1; i <= 1500; i++) {
+    const [barrio, factor, dist] = barrios[Math.min(4, Math.floor(r.next() * 5))];
+    const superficie = Math.round(Math.max(28, r.normal(barrio === "Afueras" ? 105 : 82, 28)));
+    const habitaciones = Math.max(1, Math.min(6, Math.round(superficie / 30 + r.normal(0, 0.6))));
+    const banos = Math.max(1, Math.min(3, Math.round(superficie / 60 + r.normal(0, 0.4))));
+    const antiguedad = Math.max(0, Math.round(barrio === "Centro" ? r.normal(70, 25) : r.normal(30, 18)));
+    const planta = r.int(0, 9);
+    const ascensor = planta === 0 ? (r.next() < 0.5 ? 1 : 0) : r.next() < (antiguedad > 50 ? 0.45 : 0.9) ? 1 : 0;
+    const distancia = r2(Math.max(0.2, r.normal(dist, dist * 0.25)));
+    const sinAscensorAlto = !ascensor && planta >= 3 ? -0.12 : 0;
+    const logPrecio = Math.log(2.6 * superficie * factor) - 0.004 * antiguedad + 0.035 * banos + 0.012 * planta + sinAscensorAlto - 0.015 * distancia + r.normal(0, 0.13);
+    const precio = Math.round(Math.exp(logPrecio));
+    let sup: number = superficie;
+    if (r.next() < 0.004) sup = superficie * 10; // typed an extra zero
+    rows.push([i, barrio, sup, habitaciones, banos, r.next() < 0.05 ? null : antiguedad, planta, ascensor, distancia, precio]);
+  }
+  return toCsv(["id", "barrio", "superficie_m2", "habitaciones", "banos", "antiguedad", "planta", "ascensor", "distancia_centro_km", "precio_miles"], rows);
+}
+
 export const DATASETS = [
   { file: "ventas.csv", title: "Ventas de la tienda del reino", make: ventasCsv, description: "Pedidos de 120 días: región, producto, unidades y precio. Contiene faltantes, duplicados, etiquetas inconsistentes y un atípico." },
   { file: "pacientes.csv", title: "Ensayo clínico sintético", make: pacientesCsv, description: "160 pacientes asignados alternadamente a control o tratamiento; presión arterial sistólica antes y después, y un evento binario. Datos inventados con fines educativos." },
   { file: "estudiantes.csv", title: "Rendimiento de estudiantes", make: estudiantesCsv, description: "Horas de estudio, asistencia, nota previa y nota final de 200 estudiantes ficticios." },
   { file: "clientes.csv", title: "Bajas de clientes", make: clientesCsv, description: "1200 clientes ficticios de una compañía de telecomunicaciones: contrato, antigüedad, cuota, llamadas a soporte y si se dieron de baja (clase minoritaria)." },
+  { file: "ensayo.csv", title: "Ensayo de un fármaco para el colesterol", make: ensayoCsv, description: "240 pacientes aleatorizados por bloques a fármaco o placebo en tres centros: LDL basal y a las 12 semanas, eventos adversos y abandonos. Con errores de registro. Datos inventados con fines educativos." },
+  { file: "sensores.csv", title: "Sensores de temperatura", make: sensoresCsv, description: "Lecturas horarias de dos sensores durante 60 días, con mensajes perdidos, duplicados, desordenados, lecturas «ERR» y anomalías (picos, sensor atascado, valores raros para la hora)." },
+  { file: "sensores_etiquetas.csv", title: "Etiquetas de anomalías", make: sensoresEtiquetasCsv, description: "Para cada hora y sensor, si la lectura era una anomalía real. Solo para evaluar detectores." },
+  { file: "viviendas.csv", title: "Precios de viviendas", make: viviendasCsv, description: "1500 viviendas ficticias: barrio, superficie, habitaciones, baños, antigüedad, planta, ascensor, distancia al centro y precio (miles de euros). Con faltantes y algunos errores de tecleo." },
   { file: "clima.csv", title: "Clima diario", make: climaCsv, description: "Temperatura y lluvia diarias de un año en una ciudad imaginaria, con estacionalidad." },
 ] as const;
 
