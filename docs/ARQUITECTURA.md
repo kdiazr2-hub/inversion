@@ -32,6 +32,7 @@ Editor (CodeMirror) ──► python.run({code, tests, stdin, files})          s
 ```
 
 - **Tiempo límite** (configurable, 15 s por defecto): empieza cuando los paquetes ya están descargados **e importados**. El worker importa antes los módulos científicos que el código usa (`pq_harness.warm_imports`): en Pyodide, importar pandas y scikit-learn la primera vez cuesta unos 6 s, que no deben contar como un posible bucle infinito. Si se supera, o el alumno pulsa «Detener», se termina el worker y se arranca otro.
+- **Módulo `__main__`**: el programa del alumno se ejecuta como un módulo real registrado como `__main__` mientras corren él y sus pruebas, de modo que las bibliotecas que resuelven nombres a través de `sys.modules` (Pydantic, `typing.get_type_hints`, `pickle`) encuentran sus clases y anotaciones.
 - **Aislamiento**: el código del alumno corre en el navegador del propio alumno, en un worker sin acceso al DOM. No hay ejecución en servidor. Si en el futuro se añade un backend de ejecución, debe ir en contenedores efímeros sin red, con límites de CPU, memoria y tiempo, separados del servidor principal.
 - **Paquetes**: `loadPackagesFromImports` descarga numpy, pandas, scipy, scikit-learn, statsmodels, matplotlib o sqlite3 la primera vez que se importan. `seaborn` se instala con micropip (no está en la distribución de Pyodide).
 
