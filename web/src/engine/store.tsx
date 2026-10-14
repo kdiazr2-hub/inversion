@@ -2,7 +2,7 @@
 // and turns state changes into celebrations (mission complete, level up, achievements).
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { MISSIONS, WORLDS } from "../content";
-import { summarize, type Content, type Summary } from "./derive";
+import { recordUnlocks, summarize, type Content, type Summary } from "./derive";
 import { newSave, type SaveState } from "./state";
 import { loadSave, persist } from "./storage";
 
@@ -36,7 +36,7 @@ const Ctx = createContext<Store | null>(null);
 
 export function GameProvider({ children }: { children: ReactNode }) {
   const initial = useMemo(() => loadSave(CONTENT), []);
-  const [state, setState] = useState<SaveState>(initial.state);
+  const [state, setState] = useState<SaveState>(() => recordUnlocks(initial.state, CONTENT));
   const [saved, setSaved] = useState(true);
   const [celebrations, setCelebrations] = useState<Celebration[]>([]);
   const [toasts, setToasts] = useState<Toast[]>([]);
@@ -72,8 +72,9 @@ export function GameProvider({ children }: { children: ReactNode }) {
     prev.current = { summary, state };
   }, [state, summary]);
 
-  const update = useCallback((fn: (s: SaveState) => SaveState) => setState((s) => fn(s)), []);
-  const replace = useCallback((s: SaveState) => {
+  const update = useCallback((fn: (s: SaveState) => SaveState) => setState((s) => recordUnlocks(fn(s), CONTENT)), []);
+  const replace = useCallback((imported: SaveState) => {
+    const s = recordUnlocks(imported, CONTENT);
     // An import is not a celebration: reset the baseline first.
     prev.current = { state: s, summary: summarize(s, CONTENT) };
     setState(s);

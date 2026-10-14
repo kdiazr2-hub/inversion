@@ -9,6 +9,7 @@ import {
   levelFromXp,
   misconceptionStats,
   recommendNext,
+  recordUnlocks,
   reviewCards,
   skillMastery,
   summarize,
@@ -83,6 +84,34 @@ describe("missions and rewards", () => {
     // w1 is now at 1/4 < 0.5, but the learner already completed a mission in w2.
     expect(isWorldUnlocked(s, grown, worlds[1])).toBe(true);
     expect(isWorldUnlocked(A.recordCheck(newSave(T0), grown, a, pass, {}, T0), grown, worlds[1])).toBe(false);
+  });
+
+  it("does not let a new project lower the unlock fraction", () => {
+    const s = A.recordCheck(newSave(T0), content, a, pass, {}, T0); // 1/2 of w1
+    const withProjects: Content = { worlds, missions: [...content.missions, mk("p1", "w1", ["b"], { kind: "project" }), mk("p2", "w1", ["p1"], { kind: "project" })] };
+    // 1/4 of every mission, but still 1/2 of the lessons.
+    expect(isWorldUnlocked(s, withProjects, worlds[1])).toBe(true);
+  });
+
+  it("records opened worlds so later content never closes them", () => {
+    const s = A.recordCheck(newSave(T0), content, a, pass, {}, T0);
+    const recorded = recordUnlocks(s, content);
+    expect(recorded.unlockedWorlds).toEqual(["w2"]);
+    expect(recordUnlocks(recorded, content)).toBe(recorded); // nothing new: same object
+    const grown: Content = { worlds, missions: [...content.missions, mk("a2", "w1", ["b"]), mk("a3", "w1", ["a2"])] };
+    expect(isWorldUnlocked(s, grown, worlds[1])).toBe(false); // 1/4 without the record
+    expect(isWorldUnlocked(recorded, grown, worlds[1])).toBe(true);
+    expect(recordUnlocks(newSave(T0), content).unlockedWorlds).toBeUndefined();
+  });
+
+  it("drops imported unlocks that no progress supports", () => {
+    const fake = { ...newSave(T0), unlockedWorlds: ["w2", "w9", "w2"] };
+    const res = importSave(exportSave(fake), content);
+    expect(res.ok && res.state!.unlockedWorlds).toEqual([]);
+    const real = recordUnlocks(A.recordCheck(newSave(T0), content, a, pass, {}, T0), content);
+    const back = importSave(exportSave(real), content);
+    expect(back.ok && back.state!.unlockedWorlds).toEqual(["w2"]);
+    expect(back.warnings).toEqual([]);
   });
 
   it("does not complete a locked mission even if tests pass", () => {

@@ -70,6 +70,16 @@ export function sanitize(raw: unknown, content: Content, now = new Date()): Impo
       warnings.push(`Se retiró el certificado del mundo ${w}: la ruta no está completa.`);
     }
   }
+  if (s.unlockedWorlds) {
+    // A recorded world must exist and every world that opens it must show some progress.
+    const listed = [...new Set(s.unlockedWorlds)];
+    const kept = listed.filter((id) => {
+      const world = content.worlds.find((w) => w.id === id);
+      return world !== undefined && world.unlock.every((u) => content.missions.some((m) => m.world === u.world && isDone(m.id)));
+    });
+    if (kept.length !== listed.length) warnings.push("Se ignoraron mundos desbloqueados sin progreso que los respalde.");
+    s.unlockedWorlds = kept;
+  }
   return { ok: true, state: s, errors: [], warnings };
 }
 

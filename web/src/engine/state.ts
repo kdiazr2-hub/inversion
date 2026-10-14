@@ -97,6 +97,8 @@ export const SaveSchema = z.object({
   ),
   settings: SettingsSchema,
   totalRuns: z.number().int().min(0),
+  /** Worlds already opened: they stay open even if new content lowers the unlock fractions. */
+  unlockedWorlds: z.array(z.string().max(4)).max(50).optional(),
 });
 
 export type Avatar = z.infer<typeof AvatarSchema>;

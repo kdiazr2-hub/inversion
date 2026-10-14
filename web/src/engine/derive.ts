@@ -262,12 +262,24 @@ export function worldProgress(state: SaveState, missions: Mission[], world: Worl
 
 export function isWorldUnlocked(state: SaveState, content: Content, world: World): boolean {
   if (state.placement?.worlds.includes(world.id)) return true;
-  // Progress already made in a world keeps it open even if new content lowers the fractions below.
+  // Adding content must never close a world again: once opened it is recorded (recordUnlocks), and
+  // progress already made in a world keeps it open even for saves from before that record existed.
+  if (state.unlockedWorlds?.includes(world.id)) return true;
   if (content.missions.some((m) => m.world === world.id && state.missions[m.id]?.done)) return true;
   return world.unlock.every((u) => {
-    const p = worldProgress(state, content.missions, u.world);
-    return p.total > 0 && p.fraction >= u.fraction - 1e-9;
+    // Projects are optional capstones: the fraction over the lessons alone also counts, so adding
+    // a project to a world never lowers the progress that opens the next one.
+    const all = worldProgress(state, content.missions, u.world);
+    const lessons = worldProgress(state, content.missions.filter((m) => m.kind !== "project"), u.world);
+    return [all, lessons].some((p) => p.total > 0 && p.fraction >= u.fraction - 1e-9);
   });
+}
+
+/** Adds every world currently open to ``state.unlockedWorlds`` (same object when nothing changes). */
+export function recordUnlocks(state: SaveState, content: Content): SaveState {
+  const have = new Set(state.unlockedWorlds ?? []);
+  const fresh = content.worlds.filter((w) => !have.has(w.id) && w.unlock.length > 0 && isWorldUnlocked(state, content, w)).map((w) => w.id);
+  return fresh.length ? { ...state, unlockedWorlds: [...have, ...fresh] } : state;
 }
 
 export function isMissionUnlocked(state: SaveState, content: Content, m: Mission): boolean {
