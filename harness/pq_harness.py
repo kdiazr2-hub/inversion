@@ -23,6 +23,7 @@ import shutil
 import sys
 import tempfile
 import traceback
+import types
 
 USER_FILENAME = "<tu código>"
 MAX_OUTPUT_CHARS = 200_000
@@ -90,8 +91,9 @@ class TestContext:
 
     def rerun(self, stdin=None):
         """Run the whole program again with other input() values; returns its stdout."""
-        ns = {"__name__": "__main__"}
-        out, err = _execute(self._compiled, ns, stdin or [])
+        programa = types.ModuleType("__main__")
+        with _as_main(programa):
+            out, err = _execute(self._compiled, programa.__dict__, stdin or [])
         if err is not None:
             raise AssertionError(f"Con las entradas {stdin!r} tu programa lanzó {err['type']}: {err['message']}")
         return out
@@ -158,6 +160,24 @@ def _friendly_error(exc, tb_obj=None):
         hint = FRIENDLY.get(etype, "Ocurrió un error inesperado. Lee el mensaje y revisa la línea indicada.")
     message = exc.msg if isinstance(exc, SyntaxError) else str(exc)
     return {"type": etype, "message": message, "line": line, "hint": hint}
+
+
+@contextlib.contextmanager
+def _as_main(module):
+    """Register the learner's program as ``__main__`` while it runs.
+
+    Libraries that resolve annotations or classes through ``sys.modules`` (pydantic,
+    ``typing.get_type_hints``, dataclasses with string annotations, pickle) then find the
+    learner's globals instead of the host program's."""
+    previous = sys.modules.get("__main__")
+    sys.modules["__main__"] = module
+    try:
+        yield
+    finally:
+        if previous is not None:
+            sys.modules["__main__"] = previous
+        else:
+            sys.modules.pop("__main__", None)
 
 
 def _execute(compiled, ns, stdin):
@@ -240,46 +260,48 @@ def run(code, tests="", stdin=None, files=None):
             result["error"] = _friendly_error(exc)
             return result
 
-        ns = {"__name__": "__main__"}
-        out, err = _execute(compiled, ns, stdin)
-        result["stdout"], result["error"] = out, err
+        programa = types.ModuleType("__main__")
+        ns = programa.__dict__
+        with _as_main(programa):
+            out, err = _execute(compiled, ns, stdin)
+            result["stdout"], result["error"] = out, err
 
-        if tests and err is None:
-            ctx = TestContext(code, compiled, ns, out, stdin, _collect_figures)
-            # Tests see the student's program through the global `t` (a TestContext).
-            test_ns = {"approx": approx, "math": math, "t": ctx}
-            try:
-                exec(compile(tests, "<pruebas>", "exec"), test_ns)
-            except Exception as exc:  # noqa: BLE001
-                # The test module itself failed (typically a package that could not be downloaded):
-                # report it as a failed check that is clearly not the student's fault.
-                result["tests"].append({
-                    "name": "preparar_pruebas",
-                    "description": "Preparar las pruebas",
-                    "passed": False,
-                    "message": (
-                        f"Las pruebas no pudieron cargarse ({type(exc).__name__}: {exc}). "
-                        "No es un fallo de tu código: suele ocurrir cuando un paquete no se pudo descargar. "
-                        "Comprueba tu conexión y vuelve a comprobar."
-                    ),
-                })
-                test_ns = {}
-            for name, fn in list(test_ns.items()):
-                if not (name.startswith("test_") and callable(fn)):
-                    continue
-                desc = (fn.__doc__ or name[5:].replace("_", " ")).strip()
-                entry = {"name": name, "description": desc, "passed": False, "message": ""}
+            if tests and err is None:
+                ctx = TestContext(code, compiled, ns, out, stdin, _collect_figures)
+                # Tests see the student's program through the global `t` (a TestContext).
+                test_ns = {"approx": approx, "math": math, "t": ctx}
                 try:
-                    with contextlib.redirect_stdout(io.StringIO()):
-                        fn()
-                    entry["passed"] = True
-                except AssertionError as exc:
-                    entry["message"] = str(exc) or "La comprobación no se cumplió."
+                    exec(compile(tests, "<pruebas>", "exec"), test_ns)
                 except Exception as exc:  # noqa: BLE001
-                    info = _friendly_error(exc)
-                    entry["message"] = f"Tu código lanzó {info['type']}: {info['message']}"
-                result["tests"].append(entry)
-            result["passed"] = bool(result["tests"]) and all(t["passed"] for t in result["tests"])
+                    # The test module itself failed (typically a package that could not be downloaded):
+                    # report it as a failed check that is clearly not the student's fault.
+                    result["tests"].append({
+                        "name": "preparar_pruebas",
+                        "description": "Preparar las pruebas",
+                        "passed": False,
+                        "message": (
+                            f"Las pruebas no pudieron cargarse ({type(exc).__name__}: {exc}). "
+                            "No es un fallo de tu código: suele ocurrir cuando un paquete no se pudo descargar. "
+                            "Comprueba tu conexión y vuelve a comprobar."
+                        ),
+                    })
+                    test_ns = {}
+                for name, fn in list(test_ns.items()):
+                    if not (name.startswith("test_") and callable(fn)):
+                        continue
+                    desc = (fn.__doc__ or name[5:].replace("_", " ")).strip()
+                    entry = {"name": name, "description": desc, "passed": False, "message": ""}
+                    try:
+                        with contextlib.redirect_stdout(io.StringIO()):
+                            fn()
+                        entry["passed"] = True
+                    except AssertionError as exc:
+                        entry["message"] = str(exc) or "La comprobación no se cumplió."
+                    except Exception as exc:  # noqa: BLE001
+                        info = _friendly_error(exc)
+                        entry["message"] = f"Tu código lanzó {info['type']}: {info['message']}"
+                    result["tests"].append(entry)
+                result["passed"] = bool(result["tests"]) and all(t["passed"] for t in result["tests"])
         result["figures"] = _collect_figures()
         return result
     finally:

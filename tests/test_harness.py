@@ -73,3 +73,25 @@ def test_warm_imports_only_heavy_packages():
     done = pq_harness.warm_imports(["numpy", "os", "json", "numpy.linalg", "paquete_inexistente", "scipy.no_existe"])
     assert done == ["numpy", "numpy.linalg"]
     assert "numpy.linalg" in sys.modules
+
+
+def test_program_runs_as_main_module():
+    # pydantic, typing.get_type_hints and pickle look the learner's names up in sys.modules["__main__"].
+    import sys
+    code = (
+        "from typing import Literal\n"
+        "from pydantic import BaseModel\n"
+        "import pickle\n"
+        "class M(BaseModel):\n"
+        "    tipo: Literal['a', 'b']\n"
+        "class Caja:\n"
+        "    pass\n"
+        "copia = pickle.loads(pickle.dumps(Caja()))\n"
+        "print(M(tipo='a').tipo, type(copia).__name__, __name__)\n"
+    )
+    tests = "def test_m():\n    assert t.get('M')(tipo='b').tipo == 'b'\n"
+    before = sys.modules.get("__main__")
+    r = pq_harness.run(code, tests)
+    assert r["error"] is None, r["error"]
+    assert r["stdout"] == "a Caja __main__\n" and r["passed"]
+    assert sys.modules.get("__main__") is before, "The host's __main__ must be restored"
