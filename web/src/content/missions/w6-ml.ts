@@ -887,7 +887,7 @@ print(s.round(3), round(s.mean(), 3), round(s.std(), 3))`,
     challenge: [
       "Con `clientes.csv` (dummies de `contrato` + `antiguedad_meses`, `cuota_mensual`, `llamadas_soporte`, `fibra`), separa un 20 % de prueba estratificado `random_state=0`.",
       "1. `cv_scores`: AUC de validación cruzada (5 pliegues estratificados, `shuffle=True`, `random_state=0`) de un `Pipeline` con `StandardScaler` + `LogisticRegression(max_iter=1000)` sobre el entrenamiento.",
-      "2. `busqueda`: `GridSearchCV` sobre un `RandomForestClassifier(random_state=0)` con `n_estimators` en [60] y `min_samples_leaf` en [1, 5, 20], `max_depth` en [None, 6], mismo `cv`, `scoring=\"roc_auc\"`, entrenado solo con entrenamiento.",
+      "2. `busqueda`: `GridSearchCV` sobre un `RandomForestClassifier(random_state=0)` con `n_estimators` en [40] y `min_samples_leaf` en [1, 5, 20], `max_depth` en [None, 6], mismo `cv`, `scoring=\"roc_auc\"`, entrenado solo con entrenamiento.",
       "3. `mejores`: `busqueda.best_params_`; `auc_cv_mejor`: `best_score_`.",
       "4. `auc_prueba`: AUC del mejor modelo en prueba (una sola evaluación).",
     ],
@@ -913,7 +913,7 @@ y = df["baja"]
 X_tr, X_te, y_tr, y_te = train_test_split(X, y, test_size=0.2, stratify=y, random_state=0)
 cv = StratifiedKFold(n_splits=5, shuffle=True, random_state=0)
 cv_scores = cross_val_score(Pipeline([("esc", StandardScaler()), ("lr", LogisticRegression(max_iter=1000))]), X_tr, y_tr, cv=cv, scoring="roc_auc")
-rejilla = {"n_estimators": [60], "min_samples_leaf": [1, 5, 20], "max_depth": [None, 6]}
+rejilla = {"n_estimators": [40], "min_samples_leaf": [1, 5, 20], "max_depth": [None, 6]}
 busqueda = GridSearchCV(RandomForestClassifier(random_state=0), rejilla, cv=cv, scoring="roc_auc").fit(X_tr, y_tr)
 mejores = busqueda.best_params_
 auc_cv_mejor = busqueda.best_score_

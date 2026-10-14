@@ -2,9 +2,9 @@
 
 Un videojuego RPG para aprender **Python, matemáticas, probabilidad, estadística, ciencia de datos, machine learning e inteligencia artificial** escribiendo código real.
 
-- 9 mundos, **167 misiones** con historia, intuición, explicación formal, ejemplo ejecutable explicado línea a línea, reto con pruebas automáticas, pistas progresivas, errores frecuentes, solución de referencia, pregunta de interpretación, reto avanzado opcional y recomendación de repaso.
-- **7 proyectos progresivos de 4 etapas**: simulador de probabilidades, ensayo clínico, detector de anomalías, tasador de viviendas, clasificador de texto, servicio de predicción (modelo versionado, validación con pydantic, manejador HTTP probado, Dockerfile, app FastAPI y vigilancia de deriva) y pronóstico de demanda. Cada etapa es una misión con sus pruebas y empieza con el código que escribiste en la anterior. Además, 6 proyectos integradores de una etapa.
-- El **Imperio de las Matemáticas y la Estadística** tiene 12 zonas y 60 misiones, incluida la zona de **estadística computacional**: cada técnica se implementa a mano y se verifica contra SciPy/statsmodels.
+- 9 mundos, **175 misiones** con historia, intuición, explicación formal, ejemplo ejecutable explicado línea a línea, reto con pruebas automáticas, pistas progresivas, errores frecuentes, solución de referencia, pregunta de interpretación, reto avanzado opcional y recomendación de repaso.
+- **9 proyectos progresivos de 4 etapas**: calculadora científica (analizador de expresiones sin eval, funciones por series y Newton verificadas contra math, derivadas, Simpson y raíces), simulador de probabilidades, observatorio de la incertidumbre (cobertura exacta de intervalos, t frente a bootstrap, Bayes beta-binomial y test A/B), ensayo clínico, detector de anomalías, tasador de viviendas, clasificador de texto, servicio de predicción (modelo versionado, validación con pydantic, manejador HTTP probado, Dockerfile, app FastAPI y vigilancia de deriva) y pronóstico de demanda. Cada etapa es una misión con sus pruebas y empieza con el código que escribiste en la anterior. Además, 6 proyectos integradores de una etapa.
+- El **Imperio de las Matemáticas y la Estadística** tiene 12 zonas y 64 misiones, incluida la zona de **estadística computacional**: cada técnica se implementa a mano y se verifica contra SciPy/statsmodels.
 - **Python real en el navegador** con [Pyodide](https://pyodide.org) (CPython compilado a WebAssembly) dentro de un Web Worker: numpy, pandas, scipy, statsmodels, scikit-learn, matplotlib y sqlite3. Sin servidor y sin cuenta.
 - Rutas de IA (diferenciación automática, atención de los transformers, equidad), ingeniería (Pydantic, arquitectura en capas) y optativas del Multiverso (redes, bioinformática, Bayes jerárquico, finanzas, optimización, recomendadores, series temporales).
 - Gamificación: XP, niveles, monedas, tienda de cosméticos (nunca respuestas), logros, rachas con días de descanso y pausas, personaje pixel-art personalizable y mascotas.
@@ -84,7 +84,7 @@ PYODIDE_DIST=$PWD/../pyodide npx playwright test --project=desktop     # interfa
 
 ```
 harness/pq_harness.py      Motor de ejecución y pruebas de misiones (Pyodide y CPython)
-tests/                     pytest: harness y validación de las 167 misiones
+tests/                     pytest: harness y validación de las 175 misiones
 web/
   src/content/             Mundos, misiones (un archivo por bloque o proyecto), datasets sintéticos, pestañas de laboratorio
   scripts/                 Exportación del contenido y validación en Pyodide
