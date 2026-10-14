@@ -18,6 +18,12 @@ import matplotlib.pyplot as _plt  # noqa: E402
 _plt.figure()
 _plt.close("all")
 
+# The browser worker imports the heavy packages before starting the run clock (warm_imports);
+# do the same here so a cold import does not count against the per-mission time limit.
+import pq_harness as _pq  # noqa: E402
+
+_pq.warm_imports(["numpy", "pandas", "scipy.stats", "sklearn.linear_model", "sklearn.compose", "statsmodels.api", "pydantic", "networkx"])
+
 
 def _export():
     # Always re-export so the tests see the current TypeScript content.

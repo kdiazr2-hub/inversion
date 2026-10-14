@@ -21,11 +21,12 @@ import { W5 } from "./missions/w5-data-eng";
 import { PROJ_SENSORES } from "./missions/proj-sensores";
 import { W8, W9 } from "./missions/w8-w9";
 import { W8_EXTRA } from "./missions/w8-extra";
+import { PROJ_SERVICIO } from "./missions/proj-servicio";
 import { PROJ_DEMANDA } from "./missions/proj-demanda";
 import { W9_EXTRA } from "./missions/w9-extra";
 
 /** Every mission in curriculum order. New mission files only need to be added here. */
-export const MISSIONS: Mission[] = [...W1_A, ...W1_B, ...W2, ...W3, ...W4_A, ...W4_MATH, ...W4_B, ...W4_C.filter((m) => m.kind !== "project"), ...W4_COMP, ...W4_C.filter((m) => m.kind === "project"), ...PROJ_ENSAYO, ...PROJ_PROBABILIDADES, ...W5, ...PROJ_SENSORES, ...W6.filter((m) => m.kind !== "project"), ...W6_EXTRA, ...W6.filter((m) => m.kind === "project"), ...PROJ_VIVIENDAS, ...W7, ...W7_EXTRA, ...PROJ_TEXTO, ...W8, ...W8_EXTRA, ...W9, ...W9_EXTRA, ...PROJ_DEMANDA];
+export const MISSIONS: Mission[] = [...W1_A, ...W1_B, ...W2, ...W3, ...W4_A, ...W4_MATH, ...W4_B, ...W4_C.filter((m) => m.kind !== "project"), ...W4_COMP, ...W4_C.filter((m) => m.kind === "project"), ...PROJ_ENSAYO, ...PROJ_PROBABILIDADES, ...W5, ...PROJ_SENSORES, ...W6.filter((m) => m.kind !== "project"), ...W6_EXTRA, ...W6.filter((m) => m.kind === "project"), ...PROJ_VIVIENDAS, ...W7, ...W7_EXTRA, ...PROJ_TEXTO, ...W8, ...W8_EXTRA, ...PROJ_SERVICIO, ...W9, ...W9_EXTRA, ...PROJ_DEMANDA];
 
 export const missionById: Record<string, Mission> = Object.fromEntries(MISSIONS.map((m) => [m.id, m]));
 
