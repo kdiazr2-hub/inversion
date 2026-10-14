@@ -16,7 +16,7 @@ const content = JSON.parse(readFileSync("content.json", "utf-8")) as { missions:
 const solo = process.env.PQ_MISSIONS?.split(",");
 // Packages from the Pyodide distribution (downloaded from the CDN on first import), whether the
 // student's code or the mission's tests import them.
-const CIENTIFICOS = /^\s*(?:import|from)\s+(?:numpy|pandas|scipy|sklearn|statsmodels|matplotlib|seaborn|networkx|pydantic)\b/m;
+const CIENTIFICOS = /^\s*(?:import|from)\s+(?:numpy|pandas|scipy|sklearn|statsmodels|matplotlib|seaborn|networkx|pydantic|sqlite3)\b/m;
 // With the full distribution every mission runs; otherwise only those without scientific packages.
 const puras = content.missions.filter(
   (m) => (FULL_DISTRIBUTION || (!m.packages?.length && !CIENTIFICOS.test(m.solution) && !CIENTIFICOS.test(m.tests))) && (!solo || solo.includes(m.id)),

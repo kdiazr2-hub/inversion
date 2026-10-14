@@ -530,7 +530,7 @@ def test_contextual():
     story: "El ayuntamiento tiene un registro de las averías reales. Quiere saber cuánto acierta tu detector, con qué umbral, y que las alertas queden guardadas en una base de datos que el equipo de mantenimiento pueda consultar.",
     objective: "Evaluar detectores con precisión, recall y F1; elegir el umbral con un periodo de validación y medirlo en un periodo de prueba posterior; guardar las anomalías en SQLite y resumirlas con SQL.",
     before: ["Etapas 1 a 3", "Precisión, recall y F1", "SQL con sqlite3 (db-sql)"],
-    packages: ["numpy", "pandas"],
+    packages: ["numpy", "pandas", "sqlite3"],
     files: FILES,
     intuition: [
       "Las anomalías son **raras**: un detector que nunca alerta acierta el 97 % de las lecturas. Por eso se mide la **precisión** (de las alertas, cuántas eran reales), el **recall** (de las anomalías reales, cuántas se detectaron) y su media armónica, **F1**.",

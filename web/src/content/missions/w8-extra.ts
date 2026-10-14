@@ -185,6 +185,7 @@ def test_json():
     difficulty: 4,
     skills: ["arquitectura", "pruebas", "sql", "diseno-software"],
     requires: ["eng-pydantic", "db-sql"],
+    packages: ["sqlite3"],
     story: "La torre ha crecido sin planos: la lógica de negocio llama directamente a la base de datos, al reloj y al servicio de correo, y nadie se atreve a tocarla porque no se puede probar. Vas a reconstruirla por pisos.",
     objective: "Separar la lógica de negocio del almacenamiento y de los servicios externos, inyectar las dependencias y probar el mismo servicio con un repositorio en memoria, uno en SQLite y dobles de prueba.",
     before: ["Clases", "SQL con sqlite3 (db-sql)", "Pruebas automáticas (w2-pruebas)"],
