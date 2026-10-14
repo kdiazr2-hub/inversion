@@ -11,8 +11,8 @@ jobs:
       run:
         working-directory: web
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
         with:
           node-version: 22
           cache: npm
@@ -25,11 +25,11 @@ jobs:
   contenido:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
         with:
           python-version: "3.13"
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v7
         with:
           node-version: 22
           cache: npm
@@ -40,19 +40,20 @@ jobs:
       - run: python -m pytest -q
 
   pyodide:
-    # Runs every mission in the real browser interpreter (WebAssembly). The full Pyodide
-    # distribution (~350 MB) is cached between runs.
+    # Runs every mission in the real browser interpreter (WebAssembly), first from Node and then
+    # through the game's interface in Chromium. The full Pyodide distribution (~350 MB) is cached
+    # between runs.
     runs-on: ubuntu-latest
     env:
       PYODIDE_VERSION: "0.28.3"
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
         with:
           node-version: 22
           cache: npm
           cache-dependency-path: web/package-lock.json
-      - uses: actions/cache@v4
+      - uses: actions/cache@v6
         id: pyodide-cache
         with:
           path: pyodide
@@ -68,3 +69,17 @@ jobs:
         working-directory: web
         env:
           PYODIDE_DIST: ${{ github.workspace }}/pyodide
+      - run: npx playwright install --with-deps chromium
+        working-directory: web
+      - run: npm run build
+        working-directory: web
+      - run: npx playwright test
+        working-directory: web
+        env:
+          PYODIDE_DIST: ${{ github.workspace }}/pyodide
+      - if: failure()
+        uses: actions/upload-artifact@v7
+        with:
+          name: playwright-trazas
+          path: web/test-results
+          retention-days: 7

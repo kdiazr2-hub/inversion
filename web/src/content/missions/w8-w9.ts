@@ -337,8 +337,8 @@ def test_error_interno():
     ],
     example: {
       code: py`import time
-datos = list(range(20000))
-buscados = list(range(0, 40000, 2))
+datos = list(range(5000))
+buscados = list(range(0, 10000, 2))
 t0 = time.perf_counter(); r1 = sum(1 for b in buscados if b in datos); t1 = time.perf_counter()
 s = set(datos); r2 = sum(1 for b in buscados if b in s); t2 = time.perf_counter()
 print(r1 == r2, round(t1 - t0, 3), round(t2 - t1, 4))`,
