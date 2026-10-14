@@ -56,6 +56,7 @@ Las pruebas comprueban **comportamiento** (resultados con varias entradas, efect
 
 - `Mission.series = { id, title, stage, of }` convierte una misión de tipo proyecto en la etapa *n* de una serie. El editor de la etapa *n* > 1 empieza con el código que el alumno escribió en la etapa anterior seguido del esqueleto nuevo (`stageStartCode`); también puede partir de la solución de referencia de la etapa anterior. Las pruebas de una etapa pueden usar las funciones de las anteriores.
 - En el contenido, la solución de la etapa *n* es la de la etapa *n* − 1 más el código nuevo. pytest comprueba que el código heredado más el esqueleto todavía no pasa y que la solución no rompe las pruebas de la etapa anterior.
+- El portafolio muestra un proyecto progresivo una sola vez, cuando todas sus etapas están completas, y permite descargar el código como `.py` (`engine/portfolio.ts`: cabecera solo de comentarios con título, habilidades, paquetes, archivos y notas, seguida del código sin cambios) y cada archivo de datos de la misión.
 - `Mission.lab = { lab, tab, label }` muestra en la lección un botón al simulador correspondiente (`#/labs/<lab>/<pestaña>`). Las pestañas existentes están en `content/labs.ts` y pytest valida cada enlace.
 
 ## Motor del juego (`web/src/engine`)

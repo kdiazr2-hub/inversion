@@ -10,6 +10,7 @@ import { CATALOG, FREE_EFFECTS, FREE_THEMES, itemById, type ItemKind } from "../
 import { certificateId, verifyCertificate } from "../engine/certificates";
 import { misconceptionStats, MISCONCEPTIONS, worldProgress } from "../engine/derive";
 import { dayKey } from "../engine/state";
+import { portfolioFilename, portfolioScript } from "../engine/portfolio";
 import { exportSave, importSave } from "../engine/storage";
 import { CONTENT, useGame } from "../engine/store";
 import { href } from "../router";
@@ -294,21 +295,38 @@ export function Portfolio() {
       {items.length === 0 && <p className="px-panel p-4 text-muted">Todavía está vacío. Termina un proyecto o un reto avanzado para añadir tu primera pieza.</p>}
       {items.map((m) => {
         const rec = state.missions[m.id]!;
+        const kind = m.series ? `Proyecto progresivo · ${m.series.of} etapas` : m.kind === "project" ? "Proyecto" : "Reto avanzado";
+        const title = m.series ? m.series.title : m.kind === "project" ? m.title : m.advanced!.title;
+        const date = dayKey(rec.advancedDone ?? rec.done!);
+        const code = m.kind === "project" ? rec.code : rec.advancedCode;
+        const piece = { title, kind, world: worldById[m.world].short, skills: m.skills, date, notes: rec.notes, packages: m.packages, files: m.files };
         return (
-          <article key={m.id} className="px-panel p-5 flex flex-col gap-3">
+          <article key={m.id} className="px-panel p-5 flex flex-col gap-3" data-testid="portfolio-item">
             <div className="flex justify-between gap-2 flex-wrap">
               <div>
-                <div className="label">{m.series ? `Proyecto progresivo · ${m.series.of} etapas` : m.kind === "project" ? "Proyecto" : "Reto avanzado"} · {worldById[m.world].short}</div>
-                <h2 className="font-pixel text-xl">{m.series ? m.series.title : m.kind === "project" ? m.title : m.advanced!.title}</h2>
+                <div className="label">{kind} · {worldById[m.world].short}</div>
+                <h2 className="font-pixel text-xl">{title}</h2>
               </div>
-              <span className="text-sm text-muted">{dayKey(rec.advancedDone ?? rec.done!)}</span>
+              <span className="text-sm text-muted">{date}</span>
             </div>
             {m.project && <p className="text-sm">{m.project.portfolio}</p>}
             <div className="flex flex-wrap gap-2">{m.skills.map((s) => <span key={s} className="chip">{s}</span>)}</div>
             <details>
               <summary className="cursor-pointer text-sky text-sm">Ver mi código</summary>
-              <pre className="font-mono text-[12.5px] bg-ink p-3 mt-2 rounded-[2px] overflow-x-auto max-h-96">{(m.kind === "project" ? rec.code : rec.advancedCode) ?? "(no se guardó el código)"}</pre>
+              <pre className="font-mono text-[12.5px] bg-ink p-3 mt-2 rounded-[2px] overflow-x-auto max-h-96">{code ?? "(no se guardó el código)"}</pre>
             </details>
+            {code !== undefined && (
+              <div className="flex flex-wrap gap-2">
+                <button className="btn-sky text-sm" onClick={() => downloadText(portfolioFilename(piece), portfolioScript(piece, code), "text/x-python")}>
+                  Descargar código (.py)
+                </button>
+                {Object.entries(m.files ?? {}).map(([name, content]) => (
+                  <button key={name} className="btn-ghost text-sm" onClick={() => downloadText(name, content, "text/plain")}>
+                    Descargar {name}
+                  </button>
+                ))}
+              </div>
+            )}
             <label className="label" htmlFor={`notes-${m.id}`}>
               Descripción y conclusiones (para tu portafolio)
             </label>
@@ -318,6 +336,15 @@ export function Portfolio() {
       })}
     </div>
   );
+}
+
+/** Saves ``content`` as a file through a temporary object URL. */
+function downloadText(name: string, content: string, type: string) {
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(new Blob([content], { type: `${type};charset=utf-8` }));
+  a.download = name;
+  a.click();
+  setTimeout(() => URL.revokeObjectURL(a.href), 1000);
 }
 
 function CertificateCard({ world }: { world: WorldId }) {

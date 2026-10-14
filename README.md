@@ -2,15 +2,15 @@
 
 Un videojuego RPG para aprender **Python, matemáticas, probabilidad, estadística, ciencia de datos, machine learning e inteligencia artificial** escribiendo código real.
 
-- 9 mundos, **163 misiones** con historia, intuición, explicación formal, ejemplo ejecutable explicado línea a línea, reto con pruebas automáticas, pistas progresivas, errores frecuentes, solución de referencia, pregunta de interpretación, reto avanzado opcional y recomendación de repaso.
-- **6 proyectos progresivos de 4 etapas**: simulador de probabilidades, ensayo clínico, detector de anomalías, tasador de viviendas, clasificador de texto y pronóstico de demanda. Cada etapa es una misión con sus pruebas y empieza con el código que escribiste en la anterior. Además, 6 proyectos integradores de una etapa.
+- 9 mundos, **167 misiones** con historia, intuición, explicación formal, ejemplo ejecutable explicado línea a línea, reto con pruebas automáticas, pistas progresivas, errores frecuentes, solución de referencia, pregunta de interpretación, reto avanzado opcional y recomendación de repaso.
+- **7 proyectos progresivos de 4 etapas**: simulador de probabilidades, ensayo clínico, detector de anomalías, tasador de viviendas, clasificador de texto, servicio de predicción (modelo versionado, validación con pydantic, manejador HTTP probado, Dockerfile, app FastAPI y vigilancia de deriva) y pronóstico de demanda. Cada etapa es una misión con sus pruebas y empieza con el código que escribiste en la anterior. Además, 6 proyectos integradores de una etapa.
 - El **Imperio de las Matemáticas y la Estadística** tiene 12 zonas y 60 misiones, incluida la zona de **estadística computacional**: cada técnica se implementa a mano y se verifica contra SciPy/statsmodels.
 - **Python real en el navegador** con [Pyodide](https://pyodide.org) (CPython compilado a WebAssembly) dentro de un Web Worker: numpy, pandas, scipy, statsmodels, scikit-learn, matplotlib y sqlite3. Sin servidor y sin cuenta.
 - Rutas de IA (diferenciación automática, atención de los transformers, equidad), ingeniería (Pydantic, arquitectura en capas) y optativas del Multiverso (redes, bioinformática, Bayes jerárquico, finanzas, optimización, recomendadores, series temporales).
 - Gamificación: XP, niveles, monedas, tienda de cosméticos (nunca respuestas), logros, rachas con días de descanso y pausas, personaje pixel-art personalizable y mascotas.
 - Repaso espaciado (tipo SM-2), detección de errores conceptuales (p. ej. «el valor p es la probabilidad de H₀»), dominio estimado por habilidad.
 - Laboratorios interactivos: estadístico (11 simuladores), **matemático** (derivadas, descenso de gradiente, transformaciones lineales, integración numérica), datos (pandas sobre datasets sintéticos), machine learning (fronteras de clasificación, sobreajuste en regresión polinómica, k-means paso a paso, PCA), IA (tokenización, búsqueda semántica, mini RAG con citas) y consola libre de Python. 39 misiones enlazan con el simulador de su concepto.
-- Progreso local con exportación/importación JSON validada, certificados internos verificables y portafolio.
+- Progreso local con exportación/importación JSON validada, certificados internos verificables y portafolio (cada pieza se descarga como script `.py` con sus archivos de datos).
 
 > Los certificados los emite Python Quest y **no** equivalen a acreditaciones oficiales. Los datasets son sintéticos; los ejercicios clínicos son educativos y no constituyen recomendaciones médicas.
 
@@ -56,7 +56,7 @@ El flujo `.github/workflows/pages.yml` compila y publica `web/dist` en cada push
 | Tipos | `cd web && npm run typecheck` | TypeScript estricto |
 | Contenido (CPython) | ver abajo | Para **cada misión**: la solución pasa todas las pruebas, el código inicial no, el ejemplo se ejecuta, cada línea del ejemplo tiene explicación, el reto avanzado se comporta igual; en los proyectos progresivos, el código heredado más el esqueleto aún no pasa y la solución no rompe la etapa anterior; los enlaces a simuladores existen |
 | Contenido (Pyodide) | `cd web && PYODIDE_DIST=… node scripts/validate-pyodide.mjs` | Las mismas soluciones, ejemplos y retos avanzados en el intérprete real del navegador (WebAssembly), avisando de las ejecuciones de más de 5 s |
-| Extremo a extremo | `cd web && npm run build && npx playwright test` | Navegador real (Chromium, escritorio y móvil): crear personaje, resolver una misión con Pyodide, errores legibles, recompensas, persistencia tras recargar, bucles infinitos detenidos, laboratorios, todas las misiones de Python puro resueltas en la interfaz y, con `PYODIDE_DIST`, todas las misiones y el recorrido de un proyecto progresivo |
+| Extremo a extremo | `cd web && npm run build && npx playwright test` | Navegador real (Chromium, escritorio y móvil): crear personaje, resolver una misión con Pyodide, errores legibles, recompensas, persistencia tras recargar, bucles infinitos detenidos, laboratorios, todas las misiones de Python puro resueltas en la interfaz y, con `PYODIDE_DIST`, todas las misiones y el recorrido de un proyecto progresivo; descarga del portafolio |
 
 Pruebas de contenido con las mismas versiones de bibliotecas que trae Pyodide 0.28.3:
 
@@ -84,7 +84,7 @@ PYODIDE_DIST=$PWD/../pyodide npx playwright test --project=desktop     # interfa
 
 ```
 harness/pq_harness.py      Motor de ejecución y pruebas de misiones (Pyodide y CPython)
-tests/                     pytest: harness y validación de las 163 misiones
+tests/                     pytest: harness y validación de las 167 misiones
 web/
   src/content/             Mundos, misiones (un archivo por bloque o proyecto), datasets sintéticos, pestañas de laboratorio
   scripts/                 Exportación del contenido y validación en Pyodide
