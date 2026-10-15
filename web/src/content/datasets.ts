@@ -407,6 +407,61 @@ export function gastosCsv(): string {
   return ["fecha;concepto;importe", ...rows].join("\n") + "\n";
 }
 
+const GENEROS = ["drama", "comedia", "ciencia ficción", "terror", "animación", "documental"];
+
+/** Invented films and ratings from a latent-factor model with a long tail of popularity. */
+function cineData() {
+  const r = rng(4242);
+  const inicios = ["El faro", "La ciudad", "El último viaje", "La sombra", "El jardín", "La voz", "El reino", "La noche", "El secreto", "La isla", "El tren", "La carta"];
+  const finales = ["del norte", "de cristal", "sin nombre", "de los lobos", "en la niebla", "de papel", "del olvido", "bajo la lluvia", "de medianoche", "sin final"];
+  const peliculas: { id: number; titulo: string; genero: number; anio: number; q: number[]; b: number; pop: number }[] = [];
+  const usados = new Set<string>();
+  for (let i = 0; peliculas.length < 120; i++) {
+    const titulo = `${inicios[r.int(0, inicios.length - 1)]} ${finales[r.int(0, finales.length - 1)]}`;
+    if (usados.has(titulo)) {
+      if (i > 5000) break;
+      continue;
+    }
+    usados.add(titulo);
+    const genero = peliculas.length % GENEROS.length;
+    const q = GENEROS.map((_, g) => (g === genero ? 1 : 0) + r.normal(0, 0.25));
+    peliculas.push({ id: 101 + peliculas.length, titulo, genero, anio: 1985 + r.int(0, 39), q, b: r.normal(0, 0.35), pop: 1 / Math.pow(1 + r.int(0, 119), 0.9) });
+  }
+  const filas: (string | number)[][] = [];
+  const inicio = Date.UTC(2023, 0, 1);
+  for (let u = 1; u <= 300; u++) {
+    const gustos = GENEROS.map(() => r.normal(0, 0.35));
+    gustos[r.int(0, GENEROS.length - 1)] += 1.1;
+    gustos[r.int(0, GENEROS.length - 1)] += 0.6;
+    const bu = r.normal(0, 0.3);
+    const afinidad = peliculas.map((m) => m.q.reduce((acc, v, g) => acc + v * gustos[g], 0));
+    const pesos = peliculas.map((m, i) => m.pop * Math.exp(1.2 * afinidad[i]));
+    const n = Math.min(70, 12 + Math.floor(r.exponential(1 / 18)));
+    const vistos = new Set<number>();
+    while (vistos.size < n) {
+      let x = r.next() * pesos.reduce((a, b) => a + b, 0);
+      let i = 0;
+      while (x > pesos[i] && i < pesos.length - 1) x -= pesos[i++];
+      vistos.add(i);
+    }
+    for (const i of vistos) {
+      const m = peliculas[i];
+      const nota = Math.min(5, Math.max(1, Math.round(3.3 + bu + m.b + 0.9 * afinidad[i] + r.normal(0, 0.6))));
+      const fecha = new Date(inicio + r.int(0, 729) * 86_400_000).toISOString().slice(0, 10);
+      filas.push([u, m.id, nota, fecha]);
+    }
+  }
+  return { peliculas, filas };
+}
+
+export function peliculasCsv(): string {
+  return toCsv(["pelicula", "titulo", "genero", "anio"], cineData().peliculas.map((m) => [m.id, m.titulo, GENEROS[m.genero], m.anio]));
+}
+
+export function valoracionesCsv(): string {
+  return toCsv(["usuario", "pelicula", "nota", "fecha"], cineData().filas);
+}
+
 export const DATASETS = [
   { file: "ventas.csv", title: "Ventas de la tienda del reino", make: ventasCsv, description: "Pedidos de 120 días: región, producto, unidades y precio. Contiene faltantes, duplicados, etiquetas inconsistentes y un atípico." },
   { file: "pacientes.csv", title: "Ensayo clínico sintético", make: pacientesCsv, description: "160 pacientes asignados alternadamente a control o tratamiento; presión arterial sistólica antes y después, y un evento binario. Datos inventados con fines educativos." },
