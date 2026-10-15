@@ -4,6 +4,7 @@ import { W1_A } from "./missions/w1-basics-a";
 import { W1_B } from "./missions/w1-basics-b";
 import { W2 } from "./missions/w2-logic";
 import { PROJ_CALCULADORA } from "./missions/proj-calculadora";
+import { PROJ_PREGUNTAS } from "./missions/proj-preguntas";
 import { PROJ_OBSERVATORIO } from "./missions/proj-observatorio";
 import { W3 } from "./missions/w3-data";
 import { W4_A } from "./missions/w4-math-desc";
@@ -28,7 +29,7 @@ import { PROJ_DEMANDA } from "./missions/proj-demanda";
 import { W9_EXTRA } from "./missions/w9-extra";
 
 /** Every mission in curriculum order. New mission files only need to be added here. */
-export const MISSIONS: Mission[] = [...W1_A, ...W1_B, ...W2, ...PROJ_CALCULADORA, ...W3, ...W4_A, ...W4_MATH, ...W4_B, ...W4_C.filter((m) => m.kind !== "project"), ...W4_COMP, ...W4_C.filter((m) => m.kind === "project"), ...PROJ_ENSAYO, ...PROJ_PROBABILIDADES, ...PROJ_OBSERVATORIO, ...W5, ...PROJ_SENSORES, ...W6.filter((m) => m.kind !== "project"), ...W6_EXTRA, ...W6.filter((m) => m.kind === "project"), ...PROJ_VIVIENDAS, ...W7, ...W7_EXTRA, ...PROJ_TEXTO, ...W8, ...W8_EXTRA, ...PROJ_SERVICIO, ...W9, ...W9_EXTRA, ...PROJ_DEMANDA];
+export const MISSIONS: Mission[] = [...W1_A, ...W1_B, ...PROJ_PREGUNTAS, ...W2, ...PROJ_CALCULADORA, ...W3, ...W4_A, ...W4_MATH, ...W4_B, ...W4_C.filter((m) => m.kind !== "project"), ...W4_COMP, ...W4_C.filter((m) => m.kind === "project"), ...PROJ_ENSAYO, ...PROJ_PROBABILIDADES, ...PROJ_OBSERVATORIO, ...W5, ...PROJ_SENSORES, ...W6.filter((m) => m.kind !== "project"), ...W6_EXTRA, ...W6.filter((m) => m.kind === "project"), ...PROJ_VIVIENDAS, ...W7, ...W7_EXTRA, ...PROJ_TEXTO, ...W8, ...W8_EXTRA, ...PROJ_SERVICIO, ...W9, ...W9_EXTRA, ...PROJ_DEMANDA];
 
 export const missionById: Record<string, Mission> = Object.fromEntries(MISSIONS.map((m) => [m.id, m]));
 
