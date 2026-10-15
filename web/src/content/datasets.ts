@@ -354,6 +354,59 @@ export function demandaCsv(): string {
   return toCsv(["fecha", "demanda_mwh", "temperatura"], rows);
 }
 
+/** Spanish bank-statement style: «;» separator, dd/mm/yyyy dates and amounts like «-1.234,56». */
+function importeEs(v: number): string {
+  const [ent, dec] = Math.abs(v).toFixed(2).split(".");
+  const miles = ent.replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+  return `${v < 0 ? "-" : ""}${miles},${dec}`;
+}
+
+export function gastosCsv(): string {
+  const r = rng(3103);
+  const filas: { t: number; concepto: string; importe: number }[] = [];
+  const dia = (mes: number, d: number) => Date.UTC(2024, mes, d);
+  const add = (t: number, concepto: string, importe: number) => filas.push({ t, concepto, importe: Math.round(importe * 100) / 100 });
+  const comercios: [string, string[], number, number][] = [
+    ["super", ["MERCADONA 2341", "CARREFOUR EXPRESS 118", "LIDL 0457", "mercadona  2341"], 42, 18],
+    ["restaurante", ["BAR LA PLAZA", "RESTAURANTE EL OLIVO", "GLOVO*PEDIDO 8812"], 24, 9],
+    ["transporte", ["GASOLINERA REPSOL 22", "TAXI FREENOW"], 38, 12],
+    ["compras", ["AMAZON MKTPLACE", "ZARA 0331", "DECATHLON 104"], 35, 20],
+  ];
+  const veces = [9, 4, 3, 2];
+  for (let mes = 0; mes < 12; mes++) {
+    add(dia(mes, 1), "RECIBO ALQUILER PISO", -650);
+    add(dia(mes, 3), "MOVISTAR FIBRA", -45.9);
+    add(dia(mes, 5), "NETFLIX.COM", -12.99);
+    add(dia(mes, 12), "SPOTIFY P1A2B3", -10.99);
+    if (mes < 7) add(dia(mes, 8), "GIMNASIO FITNESS PARK", -39.9);
+    if (mes >= 8) add(dia(mes, 20), "APP PREMIUM STUDIO", -4.99);
+    add(dia(mes, 2), "METRO RECARGA TARJETA", -20);
+    if (mes % 2 === 1) add(dia(mes, 14), "RECIBO IBERDROLA LUZ", -(62 + 30 * Math.abs(Math.cos((mes / 12) * 2 * Math.PI)) + r.normal(0, 4)));
+    if (mes % 3 === 2) add(dia(mes, 18), "RECIBO CANAL AGUA", -(31 + r.normal(0, 3)));
+    add(dia(mes, 27), "TRANSF NOMINA EMPRESA SL", mes === 5 || mes === 11 ? 3700 : 1850);
+    comercios.forEach(([, nombres, media, sd], k) => {
+      const n = veces[k] + r.int(0, 2);
+      for (let i = 0; i < n; i++) {
+        const d = 1 + r.int(0, 27);
+        add(dia(mes, d), nombres[r.int(0, nombres.length - 1)], -Math.max(3, r.normal(media, sd)));
+      }
+    });
+  }
+  add(dia(10, 24), "MEDIAMARKT 0021", -899);
+  add(dia(3, 9), "AMAZON DEVOLUCION", 35.5);
+  add(dia(7, 16), "BIZUM DE LAURA", 25);
+  filas.sort((a, b) => a.t - b.t);
+  const rows: string[] = [];
+  for (const f of filas) {
+    const d = new Date(f.t);
+    const fecha = `${String(d.getUTCDate()).padStart(2, "0")}/${String(d.getUTCMonth() + 1).padStart(2, "0")}/${d.getUTCFullYear()}`;
+    const linea = `${fecha};${f.concepto};${importeEs(f.importe)}`;
+    rows.push(linea);
+    if (r.next() < 0.015) rows.push(linea); // exported twice by the bank
+  }
+  return ["fecha;concepto;importe", ...rows].join("\n") + "\n";
+}
+
 export const DATASETS = [
   { file: "ventas.csv", title: "Ventas de la tienda del reino", make: ventasCsv, description: "Pedidos de 120 días: región, producto, unidades y precio. Contiene faltantes, duplicados, etiquetas inconsistentes y un atípico." },
   { file: "pacientes.csv", title: "Ensayo clínico sintético", make: pacientesCsv, description: "160 pacientes asignados alternadamente a control o tratamiento; presión arterial sistólica antes y después, y un evento binario. Datos inventados con fines educativos." },
