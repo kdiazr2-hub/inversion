@@ -11,6 +11,7 @@ import { PROJ_EXPLORADOR } from "./missions/proj-explorador";
 import { PROJ_ARBOLES } from "./missions/proj-arboles";
 import { PROJ_CINE } from "./missions/proj-cine";
 import { PROJ_PLANTA } from "./missions/proj-planta";
+import { PROJ_ORACULO } from "./missions/proj-oraculo";
 import { PROJ_PENDULO } from "./missions/proj-pendulo";
 import { W3 } from "./missions/w3-data";
 import { W4_A } from "./missions/w4-math-desc";
@@ -35,7 +36,7 @@ import { PROJ_DEMANDA } from "./missions/proj-demanda";
 import { W9_EXTRA } from "./missions/w9-extra";
 
 /** Every mission in curriculum order. New mission files only need to be added here. */
-export const MISSIONS: Mission[] = [...W1_A, ...W1_B, ...PROJ_PREGUNTAS, ...W2, ...PROJ_CALCULADORA, ...W3, ...PROJ_GASTOS, ...W4_A, ...W4_MATH, ...W4_B, ...W4_C.filter((m) => m.kind !== "project"), ...W4_COMP, ...W4_C.filter((m) => m.kind === "project"), ...PROJ_ENSAYO, ...PROJ_PROBABILIDADES, ...PROJ_OBSERVATORIO, ...PROJ_EXPLORADOR, ...PROJ_ARBOLES, ...W5, ...PROJ_SENSORES, ...PROJ_PLANTA, ...W6.filter((m) => m.kind !== "project"), ...W6_EXTRA, ...W6.filter((m) => m.kind === "project"), ...PROJ_VIVIENDAS, ...W7, ...W7_EXTRA, ...PROJ_TEXTO, ...W8, ...W8_EXTRA, ...PROJ_SERVICIO, ...W9, ...W9_EXTRA, ...PROJ_DEMANDA, ...PROJ_CINE, ...PROJ_PENDULO];
+export const MISSIONS: Mission[] = [...W1_A, ...W1_B, ...PROJ_PREGUNTAS, ...W2, ...PROJ_CALCULADORA, ...W3, ...PROJ_GASTOS, ...W4_A, ...W4_MATH, ...W4_B, ...W4_C.filter((m) => m.kind !== "project"), ...W4_COMP, ...W4_C.filter((m) => m.kind === "project"), ...PROJ_ENSAYO, ...PROJ_PROBABILIDADES, ...PROJ_OBSERVATORIO, ...PROJ_EXPLORADOR, ...PROJ_ARBOLES, ...W5, ...PROJ_SENSORES, ...PROJ_PLANTA, ...W6.filter((m) => m.kind !== "project"), ...W6_EXTRA, ...W6.filter((m) => m.kind === "project"), ...PROJ_VIVIENDAS, ...W7, ...W7_EXTRA, ...PROJ_TEXTO, ...PROJ_ORACULO, ...W8, ...W8_EXTRA, ...PROJ_SERVICIO, ...W9, ...W9_EXTRA, ...PROJ_DEMANDA, ...PROJ_CINE, ...PROJ_PENDULO];
 
 export const missionById: Record<string, Mission> = Object.fromEntries(MISSIONS.map((m) => [m.id, m]));
 
