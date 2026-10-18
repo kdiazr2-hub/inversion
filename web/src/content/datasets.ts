@@ -488,6 +488,26 @@ export function arbolesCsv(): string {
   return toCsv(["arbol", "parcela", "especie", "diametro_cm", "altura_m", "edad"], rows);
 }
 
+/** Pendulum lab: ten-swing times by stopwatch for several lengths and two amplitudes (g = 9.80 m/s²). */
+export function penduloCsv(): string {
+  const r = rng(1673);
+  const g = 9.8;
+  const rows: (string | number)[][] = [];
+  const longitudes = [0.2, 0.35, 0.5, 0.65, 0.8, 1.0, 1.2];
+  for (const [serie, grados] of [["A", 5], ["B", 35]] as [string, number][]) {
+    for (const L of longitudes) {
+      const real = L + r.normal(0, 0.0015);
+      const th = (grados * Math.PI) / 180;
+      const T = 2 * Math.PI * Math.sqrt(real / g) * (1 + th ** 2 / 16 + (11 * th ** 4) / 3072);
+      for (let rep = 1; rep <= 5; rep++) {
+        const t10 = 10 * T + r.normal(0, 0.08); // human reaction at start and stop
+        rows.push([serie, Math.round(real * 1000) / 1000, grados, rep, Math.round(t10 * 100) / 100]);
+      }
+    }
+  }
+  return toCsv(["serie", "longitud_m", "amplitud_grados", "repeticion", "t10_s"], rows);
+}
+
 export const DATASETS = [
   { file: "ventas.csv", title: "Ventas de la tienda del reino", make: ventasCsv, description: "Pedidos de 120 días: región, producto, unidades y precio. Contiene faltantes, duplicados, etiquetas inconsistentes y un atípico." },
   { file: "pacientes.csv", title: "Ensayo clínico sintético", make: pacientesCsv, description: "160 pacientes asignados alternadamente a control o tratamiento; presión arterial sistólica antes y después, y un evento binario. Datos inventados con fines educativos." },
