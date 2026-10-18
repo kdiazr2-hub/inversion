@@ -1,0 +1,85 @@
+name: Pruebas
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  web:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: web
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: web/package-lock.json
+      - run: npm ci
+      - run: npm run typecheck
+      - run: npm test
+      - run: npm run build
+
+  contenido:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.13"
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: web/package-lock.json
+      - run: npm ci
+        working-directory: web
+      - run: pip install -r requirements-dev.txt
+      - run: python -m pytest -q
+
+  pyodide:
+    # Runs every mission in the real browser interpreter (WebAssembly), first from Node and then
+    # through the game's interface in Chromium. The full Pyodide distribution (~350 MB) is cached
+    # between runs.
+    runs-on: ubuntu-latest
+    env:
+      PYODIDE_VERSION: "0.28.3"
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: web/package-lock.json
+      - uses: actions/cache@v6
+        id: pyodide-cache
+        with:
+          path: pyodide
+          key: pyodide-full-${{ env.PYODIDE_VERSION }}
+      - if: steps.pyodide-cache.outputs.cache-hit != 'true'
+        run: |
+          curl -sSL -o pyodide.tar.bz2 "https://github.com/pyodide/pyodide/releases/download/${PYODIDE_VERSION}/pyodide-${PYODIDE_VERSION}.tar.bz2"
+          tar -xjf pyodide.tar.bz2 --exclude='*-tests.tar'
+          rm pyodide.tar.bz2
+      - run: npm ci
+        working-directory: web
+      - run: node scripts/validate-pyodide.mjs
+        working-directory: web
+        env:
+          PYODIDE_DIST: ${{ github.workspace }}/pyodide
+      - run: npx playwright install --with-deps chromium
+        working-directory: web
+      - run: npm run build
+        working-directory: web
+      - run: npx playwright test
+        working-directory: web
+        env:
+          PYODIDE_DIST: ${{ github.workspace }}/pyodide
+      - if: failure()
+        uses: actions/upload-artifact@v7
+        with:
+          name: playwright-trazas
+          path: web/test-results
+          retention-days: 7
