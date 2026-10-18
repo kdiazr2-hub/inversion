@@ -462,6 +462,32 @@ export function valoracionesCsv(): string {
   return toCsv(["usuario", "pelicula", "nota", "fecha"], cineData().filas);
 }
 
+/** Forest inventory: height grows as a power of diameter, with a different law per species. */
+export function arbolesCsv(): string {
+  const r = rng(8086);
+  const especies: [string, number, number, number, number][] = [
+    // nombre, ln(a), exponente b, ln(diámetro) medio, desviación
+    ["pino", 0.15, 0.78, Math.log(18), 0.35],
+    ["roble", 0.65, 0.55, Math.log(32), 0.35],
+    ["haya", 0.35, 0.68, Math.log(42), 0.3],
+  ];
+  const rows: (string | number | null)[][] = [];
+  let id = 1;
+  for (const [nombre, la, b, lmu, lsd] of especies) {
+    for (let k = 0; k < 100; k++) {
+      const d = Math.exp(r.normal(lmu, lsd));
+      const h = Math.exp(la + b * Math.log(d) + r.normal(0, 0.12));
+      const edad = Math.round(Math.max(5, 2.2 * d + r.normal(0, 8)));
+      rows.push([id++, `P${1 + r.int(0, 9)}`, nombre, Math.round(d * 10) / 10, Math.round(h * 10) / 10, edad]);
+    }
+  }
+  rows[41][4] = Math.round((rows[41][4] as number) * 100); // height typed in centimetres
+  rows[150][3] = null; // diameter not recorded
+  rows.push([id++, "P3", "roble", 165.0, Math.round(Math.exp(0.65 + 0.55 * Math.log(165)) * 10) / 10, 360]); // giant, on the law
+  rows.push([id++, "P7", "haya", 70.0, 8.5, 150]); // broken top: far below the law
+  return toCsv(["arbol", "parcela", "especie", "diametro_cm", "altura_m", "edad"], rows);
+}
+
 export const DATASETS = [
   { file: "ventas.csv", title: "Ventas de la tienda del reino", make: ventasCsv, description: "Pedidos de 120 días: región, producto, unidades y precio. Contiene faltantes, duplicados, etiquetas inconsistentes y un atípico." },
   { file: "pacientes.csv", title: "Ensayo clínico sintético", make: pacientesCsv, description: "160 pacientes asignados alternadamente a control o tratamiento; presión arterial sistólica antes y después, y un evento binario. Datos inventados con fines educativos." },
