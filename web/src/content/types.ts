@@ -124,6 +124,25 @@ export interface Mission {
   coins: number;
 }
 
+/** Fields of a mission the engine needs to compute progress, unlocks and rewards. */
+export type MissionCore = Pick<Mission, "id" | "world" | "zone" | "title" | "kind" | "difficulty" | "skills" | "requires" | "series" | "xp" | "coins">;
+
+/**
+ * Catalog entry: what the map, progress, review calendar and portfolio show without the
+ * full mission. The complete mission (prose, code, tests, data files) loads with its world.
+ */
+export interface MissionMeta extends MissionCore {
+  objective: string;
+  packages?: string[];
+  project?: Pick<ProjectSpec, "dataset" | "stages" | "portfolio">;
+  lab?: LabLink;
+  hintCount: number;
+  /** Misconceptions named by the quiz's wrong options. */
+  probes: Misconception[];
+  advanced?: { title: string };
+  fileNames: string[];
+}
+
 export interface World {
   id: WorldId;
   order: number;

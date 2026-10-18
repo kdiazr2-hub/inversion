@@ -1,10 +1,10 @@
 // Everything the UI shows about progress is computed here from the stored facts.
-import type { Misconception, Mission, World, WorldId } from "../content/types";
+import type { Misconception, MissionCore, MissionMeta, World, WorldId } from "../content/types";
 import { itemById } from "./catalog";
 import { dayKey, type ReviewLog, type SaveState } from "./state";
 
 export interface Content {
-  missions: Mission[];
+  missions: MissionMeta[];
   worlds: World[];
 }
 
@@ -24,7 +24,7 @@ export interface MissionReward {
 }
 
 /** Reward for a mission given its record. Pure: the same record always yields the same reward. */
-export function missionReward(m: Mission, state: SaveState): MissionReward {
+export function missionReward(m: MissionCore, state: SaveState): MissionReward {
   const r = state.missions[m.id];
   const parts: MissionReward["parts"] = [];
   if (!r?.done) return { xp: 0, coins: 0, parts };
@@ -112,7 +112,7 @@ export interface ReviewCard {
 }
 
 /** SM-2-style schedule rebuilt from the completion and review history. */
-export function reviewCards(state: SaveState, missions: Mission[]): ReviewCard[] {
+export function reviewCards(state: SaveState, missions: MissionMeta[]): ReviewCard[] {
   const byMission = new Map<string, ReviewLog[]>();
   for (const r of state.reviews) {
     if (!byMission.has(r.m)) byMission.set(r.m, []);
@@ -186,7 +186,7 @@ export interface MisconceptionStat {
   active: boolean;
 }
 
-export function misconceptionStats(state: SaveState, missions: Mission[]): MisconceptionStat[] {
+export function misconceptionStats(state: SaveState, missions: MissionMeta[]): MisconceptionStat[] {
   const stats = new Map<Misconception, MisconceptionStat>();
   for (const q of state.quizzes) {
     if (q.ok || !q.tag || !(q.tag in MISCONCEPTIONS)) continue;
@@ -198,7 +198,7 @@ export function misconceptionStats(state: SaveState, missions: Mission[]): Misco
   }
   // A later correct answer on any mission probing the same idea clears the "active" flag.
   for (const s of stats.values()) {
-    const probing = new Set(missions.filter((m) => m.quiz.options.some((o) => o.misconception === s.tag)).map((m) => m.id));
+    const probing = new Set(missions.filter((m) => m.probes.includes(s.tag)).map((m) => m.id));
     const later = state.quizzes.filter((q) => probing.has(q.m) && q.at > s.last);
     s.active = !later.some((q) => q.ok);
   }
@@ -218,7 +218,7 @@ export interface SkillMastery {
  * then nudged by review outcomes and by a decay when a review is overdue. It is an
  * approximation from observed performance, not a measurement of knowledge.
  */
-export function skillMastery(state: SaveState, missions: Mission[], now = new Date()): SkillMastery[] {
+export function skillMastery(state: SaveState, missions: MissionMeta[], now = new Date()): SkillMastery[] {
   const cards = new Map(reviewCards(state, missions).map((c) => [c.m, c]));
   const today = dayKey(now);
   const bySkill = new Map<string, { sum: number; n: number; evidence: number }>();
@@ -254,7 +254,7 @@ export function skillMastery(state: SaveState, missions: Mission[], now = new Da
 
 // ---------------------------------------------------------------- unlocking
 
-export function worldProgress(state: SaveState, missions: Mission[], world: WorldId) {
+export function worldProgress(state: SaveState, missions: MissionMeta[], world: WorldId) {
   const list = missions.filter((m) => m.world === world);
   const done = list.filter((m) => state.missions[m.id]?.done).length;
   return { done, total: list.length, fraction: list.length ? done / list.length : 0 };
@@ -282,7 +282,7 @@ export function recordUnlocks(state: SaveState, content: Content): SaveState {
   return fresh.length ? { ...state, unlockedWorlds: [...have, ...fresh] } : state;
 }
 
-export function isMissionUnlocked(state: SaveState, content: Content, m: Mission): boolean {
+export function isMissionUnlocked(state: SaveState, content: Content, m: MissionCore): boolean {
   const world = content.worlds.find((w) => w.id === m.world);
   if (!world || !isWorldUnlocked(state, content, world)) return false;
   // Placement can skip the in-world chain for worlds it unlocked.
@@ -299,11 +299,11 @@ export interface Achievement {
   icon: string;
 }
 
-const doneIn = (s: SaveState, ms: Mission[], pred: (m: Mission) => boolean) => {
+const doneIn = (s: SaveState, ms: MissionMeta[], pred: (m: MissionMeta) => boolean) => {
   const list = ms.filter(pred);
   return list.length > 0 && list.every((m) => s.missions[m.id]?.done);
 };
-const countDone = (s: SaveState, ms: Mission[], pred: (m: Mission) => boolean) =>
+const countDone = (s: SaveState, ms: MissionMeta[], pred: (m: MissionMeta) => boolean) =>
   ms.filter((m) => pred(m) && s.missions[m.id]?.done).length;
 
 export const ACHIEVEMENTS: (Achievement & { earned: (s: SaveState, c: Content) => boolean })[] = [
@@ -397,7 +397,7 @@ export function summarize(state: SaveState, content: Content, now = new Date()):
 }
 
 /** Next thing to do: a due review first, then the earliest unlocked unfinished mission. */
-export function recommendNext(state: SaveState, content: Content, now = new Date()): { kind: "review" | "mission"; mission: Mission } | null {
+export function recommendNext(state: SaveState, content: Content, now = new Date()): { kind: "review" | "mission"; mission: MissionMeta } | null {
   const due = dueReviews(reviewCards(state, content.missions), now);
   if (due.length) {
     const m = content.missions.find((x) => x.id === due[0].m);

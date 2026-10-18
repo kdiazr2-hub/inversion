@@ -8,7 +8,7 @@ const piece = {
   skills: ["pydantic", "despliegue"],
   date: "2026-10-14",
   packages: ["numpy", "scikit-learn"],
-  files: { "clientes.csv": "a,b\n1,2\n" },
+  files: ["clientes.csv"],
 };
 
 describe("portfolio download", () => {
@@ -30,7 +30,7 @@ describe("portfolio download", () => {
   });
 
   it("leaves out empty sections", () => {
-    const out = portfolioScript({ ...piece, packages: [], files: {}, notes: "  " }, "x = 1\n");
+    const out = portfolioScript({ ...piece, packages: [], files: [], notes: "  " }, "x = 1\n");
     expect(out).not.toContain("Paquetes");
     expect(out).not.toContain("Archivos de datos");
     expect(out).not.toContain("Notas");

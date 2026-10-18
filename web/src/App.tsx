@@ -1,4 +1,5 @@
 import { lazy, Suspense, useEffect } from "react";
+import { ErrorBoundary } from "./components/ErrorBoundary";
 import { Shell } from "./components/Shell";
 import { useGame } from "./engine/store";
 import { LabsHub } from "./labs/LabsHub";
@@ -101,7 +102,9 @@ export function App() {
     }
   return (
     <Shell route={parts.join("/")}>
-      <Suspense fallback={<Loading />}>{page}</Suspense>
+      <ErrorBoundary key={parts.join("/")}>
+        <Suspense fallback={<Loading />}>{page}</Suspense>
+      </ErrorBoundary>
     </Shell>
   );
 }

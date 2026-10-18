@@ -3,9 +3,10 @@
 import harnessSource from "@harness/pq_harness.py?raw";
 import type { RunRequest, RunResult, WorkerOut } from "./types";
 
-export const PYODIDE_VERSION = "0.28.3";
-export const PYODIDE_URL: string =
-  (import.meta.env.VITE_PYODIDE_URL as string | undefined) ?? `https://cdn.jsdelivr.net/pyodide/v${PYODIDE_VERSION}/full/`;
+import { pyodideUrl, PYODIDE_VERSION } from "./pyodideUrl";
+
+export { PYODIDE_VERSION };
+export const PYODIDE_URL: string = pyodideUrl(import.meta.env.VITE_PYODIDE_URL as string | undefined);
 
 export type RunnerState = "idle" | "loading" | "ready" | "packages" | "running" | "error";
 

@@ -8,7 +8,8 @@ export interface PortfolioPiece {
   date: string;
   notes?: string;
   packages?: string[];
-  files?: Record<string, string>;
+  /** Names of the data files the script reads. */
+  files?: string[];
 }
 
 /** File-system friendly name: lower case ASCII, words joined by hyphens. */
@@ -35,7 +36,7 @@ export function portfolioScript(piece: PortfolioPiece, code: string): string {
     `Habilidades: ${piece.skills.join(", ")}`,
   ];
   if (piece.packages?.length) header.push(`Paquetes: ${piece.packages.join(", ")}`);
-  const files = Object.keys(piece.files ?? {});
+  const files = piece.files ?? [];
   if (files.length) header.push(`Archivos de datos (en la misma carpeta que este script): ${files.join(", ")}`);
   const notes = (piece.notes ?? "").trim();
   if (notes) header.push("", "Notas:", ...notes.split(/\r?\n/));

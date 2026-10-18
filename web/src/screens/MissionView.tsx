@@ -1,8 +1,8 @@
 // A mission: story → intuition → formal → example → challenge (editor, console, tests)
 // → hints → common errors → solution → interpretation → advanced challenge → review advice.
 import { useEffect, useMemo, useRef, useState } from "react";
-import { missionById, MISSIONS, previousStage, seriesStages, stageLabel, stageStartCode } from "../content";
-import { text, type Mission } from "../content/types";
+import { loadedWorld, loadWorld, missionById, MISSIONS, previousStage, seriesStages, stageLabel, stageStartCode } from "../content";
+import { text, type Mission, type MissionMeta, type WorldId } from "../content/types";
 import { worldById } from "../content/worlds";
 import { CodeEditor } from "../components/CodeEditor";
 import { Markdown } from "../components/Markdown";
@@ -169,21 +169,91 @@ function StageBanner({ m }: { m: Mission }) {
   );
 }
 
+/**
+ * Full missions of a world, loaded on demand. Browsers remember a failed module download for the
+ * life of the page, so recovering from one takes a page reload.
+ */
+function useWorldMissions(world: WorldId | undefined) {
+  const [loaded, setLoaded] = useState<{ world?: WorldId; missions?: Record<string, Mission>; error?: string }>({});
+  useEffect(() => {
+    if (!world || loadedWorld(world)) return;
+    let live = true;
+    setLoaded({ world });
+    loadWorld(world).then(
+      (missions) => live && setLoaded({ world, missions }),
+      (e: unknown) => live && setLoaded({ world, error: e instanceof Error ? e.message : String(e) }),
+    );
+    return () => {
+      live = false;
+    };
+  }, [world]);
+  const ready = world ? loadedWorld(world) : undefined;
+  return { missions: ready ?? (loaded.world === world ? loaded.missions : undefined), error: !ready && loaded.world === world ? loaded.error : undefined };
+}
+
 export function MissionView({ id, review }: { id: string; review: boolean }) {
-  const m = missionById[id];
+  const meta = missionById[id];
+  const { state } = useGame();
+  const content = useWorldMissions(meta?.world);
+  if (!meta) return <p>No existe esa misión. <a className="text-sky underline" href={href("mapa")}>Volver al mapa</a></p>;
+  const world = worldById[meta.world];
+
+  if (!isMissionUnlocked(state, CONTENT, meta) && !state.missions[id]?.done)
+    return (
+      <div className="px-panel p-6 max-w-xl">
+        <h1 className="px-title text-xl text-gold flex items-center gap-2">
+          <PixelIcon name="lock" size={20} /> Misión bloqueada
+        </h1>
+        <p className="mt-2">Para abrir «{meta.title}» completa antes:</p>
+        <ul className="list-[square] pl-5 mt-2">
+          {meta.requires.filter((r) => !state.missions[r]?.done).map((r) => (
+            <li key={r}>
+              <a className="text-sky underline" href={href(`mision/${r}`)}>
+                {missionById[r]?.title}
+              </a>
+            </li>
+          ))}
+          {meta.requires.length === 0 && <li>Desbloquea el mundo «{world.name}» desde el mapa.</li>}
+        </ul>
+      </div>
+    );
+
+  if (content.error)
+    return (
+      <div className="px-panel p-6 max-w-xl flex flex-col gap-3" role="alert">
+        <h1 className="px-title text-xl text-ember">No se pudo cargar la misión</h1>
+        <p>El contenido de «{world.name}» no se descargó: {content.error}</p>
+        <p className="text-sm text-muted">Comprueba tu conexión y recarga la página. Tu progreso está guardado en este navegador.</p>
+        <button className="btn-gold self-start" onClick={() => location.reload()}>
+          Recargar la página
+        </button>
+      </div>
+    );
+  if (!content.missions)
+    return (
+      <p className="px-panel p-6 max-w-xl text-muted" role="status" data-testid="mission-loading">
+        Cargando «{meta.title}»…
+      </p>
+    );
+  const m = content.missions[id];
+  if (!m) return <p role="alert">El contenido de la misión {id} no está en el mundo {world.name}.</p>;
+  const prevMeta = previousStage(meta);
+  return <MissionScreen m={m} meta={meta} prev={prevMeta ? content.missions[prevMeta.id] : undefined} review={review} />;
+}
+
+function MissionScreen({ m, meta, prev, review }: { m: Mission; meta: MissionMeta; prev: Mission | undefined; review: boolean }) {
+  const id = m.id;
   const { state, update, toast } = useGame();
   const runner = useRunner();
   const rec = state.missions[id];
-  const unlocked = m ? isMissionUnlocked(state, CONTENT, m) : false;
   const [mode, setMode] = useState<"main" | "advanced">("main");
   // Stage n of a progressive project starts from the learner's code of stage n − 1 (the reference
   // solution in review mode, or if that code was never saved).
-  const prevStage = m ? previousStage(m) : undefined;
-  const freshStarter = m ? stageStartCode(m, review || !prevStage ? undefined : state.missions[prevStage.id]?.code) : "";
-  const initialCode = useMemo(() => (m ? (review ? freshStarter : rec?.code ?? freshStarter) : ""), [id, review]); // eslint-disable-line react-hooks/exhaustive-deps
+  const freshStarter = stageStartCode(m, prev, review || !prev ? undefined : state.missions[prev.id]?.code);
+  const initialCode = useMemo(() => (review ? freshStarter : rec?.code ?? freshStarter), [id, review]); // eslint-disable-line react-hooks/exhaustive-deps
   const [confirmCarry, setConfirmCarry] = useState(false);
   const [code, setCode] = useState(initialCode);
-  const [advCode, setAdvCode] = useState(m?.advanced ? rec?.advancedCode ?? m.advanced.starter : "");
+  const [advCode, setAdvCode] = useState(m.advanced ? rec?.advancedCode ?? m.advanced.starter : "");
   const [out, setOut] = useState<PanelResult>(null);
   const [confirmReset, setConfirmReset] = useState(false);
   const [reviewHints, setReviewHints] = useState(0);
@@ -200,41 +270,20 @@ export function MissionView({ id, review }: { id: string; review: boolean }) {
     setShowSolution(false);
     setReviewHints(0);
     setReviewGraded(null);
-    if (m?.advanced) setAdvCode(state.missions[id]?.advancedCode ?? m.advanced.starter);
+    if (m.advanced) setAdvCode(state.missions[id]?.advancedCode ?? m.advanced.starter);
   }, [id, review]); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     void python.boot().catch(() => {});
   }, []);
 
-  if (!m) return <p>No existe esa misión. <a className="text-sky underline" href={href("mapa")}>Volver al mapa</a></p>;
   const world = worldById[m.world];
-
-  if (!unlocked && !rec?.done)
-    return (
-      <div className="px-panel p-6 max-w-xl">
-        <h1 className="px-title text-xl text-gold flex items-center gap-2">
-          <PixelIcon name="lock" size={20} /> Misión bloqueada
-        </h1>
-        <p className="mt-2">Para abrir «{m.title}» completa antes:</p>
-        <ul className="list-[square] pl-5 mt-2">
-          {m.requires.filter((r) => !state.missions[r]?.done).map((r) => (
-            <li key={r}>
-              <a className="text-sky underline" href={href(`mision/${r}`)}>
-                {missionById[r]?.title}
-              </a>
-            </li>
-          ))}
-          {m.requires.length === 0 && <li>Desbloquea el mundo «{world.name}» desde el mapa.</li>}
-        </ul>
-      </div>
-    );
 
   const adv = mode === "advanced" && m.advanced;
   const currentCode = adv ? advCode : code;
   const hintsShown = review ? reviewHints : rec?.done ? m.hints.length : rec?.hints ?? 0;
   const solutionAllowed = review ? false : A.canSeeSolution(state, m);
-  const reward = missionReward(m, state);
+  const reward = missionReward(meta, state);
   const idx = MISSIONS.findIndex((x) => x.id === m.id);
   const next = MISSIONS.slice(idx + 1).find((x) => x.world === m.world) ?? null;
 
@@ -301,7 +350,7 @@ export function MissionView({ id, review }: { id: string; review: boolean }) {
     }
     setConfirmCarry(false);
     setMode("main");
-    onChange(stageStartCode(m));
+    onChange(stageStartCode(m, prev));
     setOut(null);
     setMobileTab("codigo");
   };
@@ -309,10 +358,10 @@ export function MissionView({ id, review }: { id: string; review: boolean }) {
   const lesson = (
     <div className="flex flex-col gap-7">
       {m.series && <StageBanner m={m} />}
-      {m.series && prevStage && !review && (
+      {m.series && prev && !review && (
         <div className="px-panel p-3 text-sm flex flex-col gap-2" data-testid="stage-carry">
           <p>
-            Tu editor empieza con <strong>tu código de la etapa anterior</strong> («{prevStage.title}») y, debajo, el esqueleto de esta etapa. Las pruebas de esta etapa pueden usar las funciones que ya escribiste.
+            Tu editor empieza con <strong>tu código de la etapa anterior</strong> («{prev.title}») y, debajo, el esqueleto de esta etapa. Las pruebas de esta etapa pueden usar las funciones que ya escribiste.
           </p>
           <div>
             <button className="btn-ghost text-sm" onClick={startFromReference}>

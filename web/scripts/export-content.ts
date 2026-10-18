@@ -1,7 +1,8 @@
 // Writes all missions to web/content.json so pytest can validate them under CPython.
 import { writeFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
-import { MISSIONS, WORLDS } from "../src/content";
+import { MISSIONS } from "../src/content/full";
+import { WORLDS } from "../src/content/worlds";
 import { LAB_TABS } from "../src/content/labs";
 import { text } from "../src/content/types";
 

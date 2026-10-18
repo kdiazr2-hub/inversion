@@ -1,8 +1,8 @@
 import { useEffect, useRef, useState } from "react";
-import { missionById, MISSIONS, seriesStages, stageLabel, WORLDS } from "../content";
-import { text, type WorldId } from "../content/types";
+import { loadWorld, missionById, MISSIONS, seriesStages, stageLabel, WORLDS } from "../content";
+import { text, type MissionMeta, type WorldId } from "../content/types";
 import { worldById } from "../content/worlds";
-import { EDITOR_THEMES } from "../components/CodeEditor";
+import { EDITOR_THEMES } from "../components/editorThemes";
 import { Markdown } from "../components/Markdown";
 import { Avatar, PixelIcon } from "../components/pixel";
 import * as A from "../engine/actions";
@@ -13,6 +13,7 @@ import { dayKey } from "../engine/state";
 import { portfolioFilename, portfolioScript } from "../engine/portfolio";
 import { exportSave, importSave } from "../engine/storage";
 import { CONTENT, useGame } from "../engine/store";
+import { clearOfflineData, offlineStatus, type OfflineStatus } from "../offline";
 import { href } from "../router";
 import { AvatarEditor } from "./Onboarding";
 
@@ -56,7 +57,7 @@ export function Review() {
           <h2 className="font-bold mb-3">Ideas que conviene reforzar</h2>
           <ul className="flex flex-col gap-3">
             {miscon.map((m) => {
-              const probes = MISSIONS.filter((x) => x.quiz.options.some((o) => o.misconception === m.tag));
+              const probes = MISSIONS.filter((x) => x.probes.includes(m.tag));
               return (
                 <li key={m.tag} className="text-sm">
                   <div className="font-bold text-ember">{MISCONCEPTIONS[m.tag].title}</div>
@@ -277,7 +278,17 @@ export function Projects() {
 }
 
 export function Portfolio() {
-  const { state, update } = useGame();
+  const { state, update, toast } = useGame();
+  // Data files live with the full mission, which loads with its world on the first download.
+  const downloadDataFile = (m: MissionMeta, name: string) =>
+    loadWorld(m.world).then(
+      (full) => {
+        const content = full[m.id]?.files?.[name];
+        if (content === undefined) toast(`No se encontró el archivo ${name}.`, "bad");
+        else downloadText(name, content, "text/plain");
+      },
+      (e: unknown) => toast(`No se pudo descargar ${name}: ${e instanceof Error ? e.message : String(e)}`, "bad"),
+    );
   // A progressive project appears once, when its last stage is done (its code contains every stage).
   const items = MISSIONS.filter(
     (m) =>
@@ -299,7 +310,7 @@ export function Portfolio() {
         const title = m.series ? m.series.title : m.kind === "project" ? m.title : m.advanced!.title;
         const date = dayKey(rec.advancedDone ?? rec.done!);
         const code = m.kind === "project" ? rec.code : rec.advancedCode;
-        const piece = { title, kind, world: worldById[m.world].short, skills: m.skills, date, notes: rec.notes, packages: m.packages, files: m.files };
+        const piece = { title, kind, world: worldById[m.world].short, skills: m.skills, date, notes: rec.notes, packages: m.packages, files: m.fileNames };
         return (
           <article key={m.id} className="px-panel p-5 flex flex-col gap-3" data-testid="portfolio-item">
             <div className="flex justify-between gap-2 flex-wrap">
@@ -320,8 +331,8 @@ export function Portfolio() {
                 <button className="btn-sky text-sm" onClick={() => downloadText(portfolioFilename(piece), portfolioScript(piece, code), "text/x-python")}>
                   Descargar código (.py)
                 </button>
-                {Object.entries(m.files ?? {}).map(([name, content]) => (
-                  <button key={name} className="btn-ghost text-sm" onClick={() => downloadText(name, content, "text/plain")}>
+                {m.fileNames.map((name) => (
+                  <button key={name} className="btn-ghost text-sm" onClick={() => void downloadDataFile(m, name)}>
                     Descargar {name}
                   </button>
                 ))}
@@ -606,6 +617,8 @@ export function Settings() {
         )}
       </section>
 
+      <OfflineSection />
+
       <section className="px-panel p-4 flex flex-col gap-3">
         <h2 className="font-bold">Personaje y evaluación</h2>
         <div className="flex gap-2 flex-wrap">
@@ -639,6 +652,55 @@ export function Settings() {
       <p className="text-xs text-muted">Python Quest ejecuta Python con Pyodide (CPython compilado a WebAssembly) dentro de tu navegador. Tu código no se envía a ningún servidor.</p>
       {MISSIONS.length > 0 && <p className="text-xs text-muted">Contenido: {MISSIONS.length} misiones en {new Set(MISSIONS.map((m) => m.world)).size} mundos.</p>}
     </div>
+  );
+}
+
+const formatBytes = (n: number) => (n >= 1e9 ? `${(n / 1e9).toFixed(1)} GB` : n >= 1e6 ? `${(n / 1e6).toFixed(1)} MB` : `${Math.round(n / 1e3)} KB`);
+
+function OfflineSection() {
+  const { toast } = useGame();
+  const [status, setStatus] = useState<OfflineStatus | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const refresh = () =>
+    offlineStatus().then(setStatus, (e: unknown) => setError(e instanceof Error ? e.message : String(e)));
+  useEffect(() => {
+    void refresh();
+  }, []);
+  return (
+    <section className="px-panel p-4 flex flex-col gap-3" data-testid="offline">
+      <h2 className="font-bold">Jugar sin conexión</h2>
+      <p className="text-sm text-muted">
+        El navegador guarda una copia del juego, de Python y de cada paquete la primera vez que se usa. Sin conexión puedes abrir las misiones y ejecutar el código de todo lo que ya hayas cargado antes.
+      </p>
+      {error && <p className="text-sm text-ember">No se pudo consultar la copia: {error}</p>}
+      {status &&
+        (status.unavailable ? (
+          <p className="text-sm">No disponible: {status.unavailable}.</p>
+        ) : (
+          <ul className="text-sm list-[square] pl-5">
+            <li>{status.active ? "Activo." : "Preparándose: se activa al terminar de descargar la copia."}</li>
+            <li>Archivos del juego guardados: {status.appFiles}</li>
+            <li>Archivos de Python y paquetes guardados: {status.pythonFiles}</li>
+            {status.usage !== null && <li>Espacio que usa este sitio en el navegador: {formatBytes(status.usage)}</li>}
+          </ul>
+        ))}
+      {status && !status.unavailable && (
+        <button
+          className="btn-ghost self-start text-sm"
+          onClick={() =>
+            clearOfflineData().then(
+              () => {
+                toast("Copia sin conexión borrada. Se volverá a guardar mientras juegas con conexión.", "good");
+                void refresh();
+              },
+              (e: unknown) => toast(`No se pudo borrar: ${e instanceof Error ? e.message : String(e)}`, "bad"),
+            )
+          }
+        >
+          Borrar la copia sin conexión
+        </button>
+      )}
+    </section>
   );
 }
 

@@ -1,5 +1,5 @@
 // Pure state transitions. Each returns a new SaveState; the React store persists it.
-import type { Mission } from "../content/types";
+import type { Mission, MissionCore } from "../content/types";
 import { CATALOG, itemById } from "./catalog";
 import type { Content } from "./derive";
 import { isMissionUnlocked, summarize } from "./derive";
@@ -44,7 +44,7 @@ export function recordRun(s: SaveState, now = new Date()): SaveState {
 export function recordCheck(
   s: SaveState,
   content: Content,
-  m: Mission,
+  m: MissionCore,
   out: CheckOutcome,
   opts: { advanced?: boolean; review?: boolean; code?: string } = {},
   now = new Date(),

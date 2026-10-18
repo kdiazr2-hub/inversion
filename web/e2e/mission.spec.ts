@@ -14,6 +14,12 @@ async function dismissCelebrations(page: Page) {
   for (let i = 0; i < 5 && (await btn.isVisible()); i++) await btn.click();
 }
 
+/** Opens a mission and waits for its content, which loads with its world. */
+async function openMission(page: Page, path: string) {
+  await page.goto(`/#/mision/${path}`);
+  await page.locator("#historia").waitFor({ state: "attached" });
+}
+
 async function typeCode(page: Page, code: string) {
   await dismissCelebrations(page);
   const editor = page.getByRole("textbox", { name: /Editor de Python/ });
@@ -29,7 +35,7 @@ test("solve the first mission with real Python, earn rewards, survive a reload",
   const errors: string[] = [];
   page.on("pageerror", (e) => errors.push(e.message));
   await createHero(page);
-  await page.goto("/#/mision/py-hola");
+  await openMission(page, "py-hola");
   const code = page.locator("main");
   if (await page.getByRole("tab", { name: "Código" }).isVisible()) await page.getByRole("tab", { name: "Código" }).click();
 
@@ -54,7 +60,7 @@ test("solve the first mission with real Python, earn rewards, survive a reload",
   await expect(code).toContainText("Misión completada");
 
   // Interpretation question appears after solving.
-  await page.goto("/#/mision/py-hola");
+  await openMission(page, "py-hola");
   if (await page.getByRole("tab", { name: "Lección" }).isVisible()) await page.getByRole("tab", { name: "Lección" }).click();
   await page.getByRole("radio", { name: "De arriba abajo, una tras otra" }).click();
   await page.getByRole("button", { name: "Responder" }).click();
