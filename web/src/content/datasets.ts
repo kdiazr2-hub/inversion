@@ -508,6 +508,48 @@ export function penduloCsv(): string {
   return toCsv(["serie", "longitud_m", "amplitud_grados", "repeticion", "t10_s"], rows);
 }
 
+/** Daily order files for the data-pipeline project: four days with the problems of a real feed. */
+export function plantaArchivos(): Record<string, string> {
+  const r = rng(5577);
+  const productos = [
+    [1, "Poción de vigor", "pociones", 12.5], [2, "Poción de calma", "pociones", 9.0], [3, "Espada corta", "armas", 85.0],
+    [4, "Arco de tejo", "armas", 120.0], [5, "Mapa del norte", "mapas", 20.0], [6, "Mapa del sur", "mapas", 18.5],
+    [7, "Escudo redondo", "armaduras", 60.0], [8, "Yelmo", "armaduras", 45.0],
+  ] as [number, string, string, number][];
+  const catalogo = toCsv(["producto_id", "nombre", "categoria", "precio"], productos);
+  const ciudades = ["Norte", "Sur", "Este", "Oeste"];
+  const clientes = Array.from({ length: 40 }, (_, k) => ({ cliente_id: 100 + k, nombre: `Cliente ${100 + k}`, ciudad: ciudades[k % 4], alta: `2024-${String(1 + (k % 12)).padStart(2, "0")}-15` }));
+  const archivos: Record<string, string> = { "catalogo.csv": catalogo, "clientes.json": JSON.stringify(clientes, null, 1) + "\n" };
+  let siguiente = 5000;
+  const anteriores: (string | number)[][] = [];
+  const dias = ["2025-03-01", "2025-03-02", "2025-03-03", "2025-03-04"];
+  dias.forEach((dia, d) => {
+    const n = d === 3 ? 70 : 30 + r.int(0, 8);
+    const filas: (string | number)[][] = [];
+    for (let i = 0; i < n; i++) {
+      const hora = `${String(8 + r.int(0, 11)).padStart(2, "0")}:${String(r.int(0, 59)).padStart(2, "0")}`;
+      filas.push([siguiente++, `${dia} ${hora}`, 100 + r.int(0, 39), 1 + r.int(0, 7), 1 + r.int(0, 4)]);
+    }
+    if (d === 0) {
+      filas.push([siguiente++, `${dia} 10:00`, 999, 2, 1]); // unknown customer
+      filas.push([siguiente++, `${dia} 11:30`, 105, 42, 2]); // unknown product
+    }
+    if (d === 1) {
+      filas.push(...anteriores.slice(0, 5).map((f) => [...f])); // re-sent from yesterday
+      filas.push([siguiente++, `${dia} 12:15`, 110, 3, -2]); // negative quantity
+      filas.push([siguiente++, "2025-02-31 09:00", 111, 4, 1]); // impossible date
+    }
+    anteriores.splice(0, anteriores.length, ...filas);
+    if (d >= 2) {
+      // From day 3 the shop's software renames «cantidad» and adds a «canal» column.
+      archivos[`pedidos_${dia}.csv`] = toCsv(["pedido_id", "fecha_hora", "cliente_id", "producto_id", "unidades", "canal"], filas.map((f) => [...f, r.next() < 0.6 ? "web" : "tienda"]));
+    } else {
+      archivos[`pedidos_${dia}.csv`] = toCsv(["pedido_id", "fecha_hora", "cliente_id", "producto_id", "cantidad"], filas);
+    }
+  });
+  return archivos;
+}
+
 export const DATASETS = [
   { file: "ventas.csv", title: "Ventas de la tienda del reino", make: ventasCsv, description: "Pedidos de 120 días: región, producto, unidades y precio. Contiene faltantes, duplicados, etiquetas inconsistentes y un atípico." },
   { file: "pacientes.csv", title: "Ensayo clínico sintético", make: pacientesCsv, description: "160 pacientes asignados alternadamente a control o tratamiento; presión arterial sistólica antes y después, y un evento binario. Datos inventados con fines educativos." },
