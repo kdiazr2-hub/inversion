@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import { buildCatalog, toMeta } from "./catalog";
 import { CATALOG } from "./catalog.generated";
 import { MISSIONS as FULL } from "./full";
+import { DRILLS } from "./practice";
 import { loadedWorld, loadWorld } from "./load";
 import { WORLDS } from "./worlds";
 
@@ -10,7 +11,7 @@ const modules = Object.fromEntries(Object.entries(files).map(([path, mod]) => [p
 
 describe("catálogo de misiones", () => {
   it("coincide con las misiones (si falla: npm run catalog)", () => {
-    expect(CATALOG).toEqual(buildCatalog(FULL, modules));
+    expect(CATALOG).toEqual(buildCatalog(FULL, modules, DRILLS));
   });
 
   it("cada mundo carga exactamente sus misiones completas", async () => {

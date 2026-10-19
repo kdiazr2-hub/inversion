@@ -40,3 +40,6 @@ export function loadWorld(world: WorldId): Promise<Record<string, Mission>> {
 
 /** A world that already finished loading (undefined otherwise), for rendering without a flash. */
 export const loadedWorld = (world: WorldId): Record<string, Mission> | undefined => ready.get(world);
+
+/** The practice gym's drill generators (one chunk, loaded when the gym opens). */
+export const loadPractice = () => import("./practice");

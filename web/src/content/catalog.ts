@@ -1,12 +1,14 @@
 // Builds the mission catalog: the light part of every mission plus, for each world, the mission
 // files that hold its full content. scripts/build-catalog.ts writes it to catalog.generated.ts and
 // catalog.test.ts checks that the written file matches the missions.
-import { text, type Misconception, type Mission, type MissionMeta, type WorldId } from "./types";
+import { text, type Drill, type DrillMeta, type Misconception, type Mission, type MissionMeta, type WorldId } from "./types";
 
 export interface Catalog {
   missions: MissionMeta[];
   /** Mission files (names inside content/missions) to load for each world. */
   modules: Partial<Record<WorldId, string[]>>;
+  /** Practice gym drills (their generators load with the gym). */
+  drills: DrillMeta[];
 }
 
 const isMission = (x: unknown): x is Mission => typeof x === "object" && x !== null && "id" in x && "tests" in x && "world" in x;
@@ -42,8 +44,16 @@ export function toMeta(m: Mission): MissionMeta {
   return meta;
 }
 
+export function toDrillMeta(d: Drill, missions: Mission[]): DrillMeta {
+  const m = missions.find((x) => x.id === d.mission);
+  if (!m) throw new Error(`El ejercicio ${d.id} practica la misión ${d.mission}, que no existe`);
+  const meta: DrillMeta = { id: d.id, mission: d.mission, world: m.world, title: d.title, skills: d.skills, difficulty: d.difficulty, hintCount: d.hints.length };
+  if (d.packages) meta.packages = d.packages;
+  return meta;
+}
+
 /** `ordered` is the curriculum order; `modules` maps a mission file name to its exports. */
-export function buildCatalog(ordered: Mission[], modules: Record<string, Record<string, unknown>>): Catalog {
+export function buildCatalog(ordered: Mission[], modules: Record<string, Record<string, unknown>>, drills: Drill[] = []): Catalog {
   const fileOf = new Map<string, string>();
   for (const [file, mod] of Object.entries(modules)) for (const m of missionsIn(mod)) fileOf.set(m.id, file);
   const perWorld = new Map<WorldId, Set<string>>();
@@ -55,5 +65,5 @@ export function buildCatalog(ordered: Mission[], modules: Record<string, Record<
   }
   const modulesByWorld: Catalog["modules"] = {};
   for (const [w, files] of [...perWorld].sort(([a], [b]) => a.localeCompare(b))) modulesByWorld[w] = [...files].sort();
-  return { missions: ordered.map(toMeta), modules: modulesByWorld };
+  return { missions: ordered.map(toMeta), modules: modulesByWorld, drills: drills.map((d) => toDrillMeta(d, ordered)) };
 }

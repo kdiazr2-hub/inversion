@@ -17,6 +17,8 @@ const DataLab = lazy(() => import("./labs/DataLab").then((m) => ({ default: m.Da
 const MathLab = lazy(() => import("./labs/MathLab").then((m) => ({ default: m.MathLab })));
 const MLLab = lazy(() => import("./labs/MLLab").then((m) => ({ default: m.MLLab })));
 const AILab = lazy(() => import("./labs/AILab").then((m) => ({ default: m.AILab })));
+const Gym = lazy(() => import("./screens/Gym").then((m) => ({ default: m.Gym })));
+const DrillView = lazy(() => import("./screens/Gym").then((m) => ({ default: m.DrillView })));
 
 function NotFound() {
   return (
@@ -65,6 +67,12 @@ export function App() {
         break;
       case "mision":
         page = <MissionView key={parts.slice(1, 3).join("/")} id={parts[1] ?? ""} review={parts[2] === "repaso"} />;
+        break;
+      case "gimnasio":
+        page = <Gym />;
+        break;
+      case "practica":
+        page = <DrillView key={parts.slice(1).join("/")} id={parts[1] ?? ""} seed={Number(parts[2])} mode={parts[3]} extra={parts[4]} />;
         break;
       case "repaso":
         page = <Review />;

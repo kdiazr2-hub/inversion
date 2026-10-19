@@ -44,6 +44,16 @@ Editor (CodeMirror) ──► python.run({code, tests, stdin, files})          s
 - **Errores visibles.** Si falla la descarga de un mundo, la misión muestra el error y un botón para recargar (el navegador recuerda durante la vida de la página un módulo que no pudo descargar, así que reintentar sin recargar no funciona). Un límite de errores (`ErrorBoundary`) muestra el fallo de cualquier pantalla en lugar de una página en blanco.
 - **Service worker** (`web/sw/service-worker.js`; solo en la compilación de producción). La compilación le antepone la lista de archivos JS y CSS de esa versión, que guarda al instalarse. La página se pide primero a la red y la copia solo se usa sin conexión, así que una versión nueva se recibe en cuanto hay red; al activarse una versión nueva se borra la caché de la anterior. Pyodide y sus paquetes (URL con versión, que no cambian) se guardan la primera vez que se piden y después se sirven desde la caché. El worker de Python que arranca en la primera visita es anterior al service worker, así que Pyodide queda guardado a partir de la siguiente carga. Sin conexión solo funciona lo que ya se descargó: las misiones de los mundos abiertos y los paquetes ya usados. `e2e/offline.spec.ts` lo comprueba sin conexión y sin ninguna otra fuente de Pyodide que la caché; las demás pruebas de Playwright desactivan el service worker.
 
+## Gimnasio de práctica
+
+- **Ejercicio = generador.** Cada ejercicio (`web/src/content/practice/w1.ts`…`w4.ts`) tiene una función `make(r)` que recibe un generador pseudoaleatorio con semilla (mulberry32) y devuelve un ejercicio concreto: enunciado, código inicial, solución de referencia, pruebas y, si hace falta, entradas y archivos. La semilla combina el identificador del ejercicio y el número de variante, así que la misma variante es siempre el mismo ejercicio.
+- **Solo variantes validadas.** El gimnasio ofrece las semillas 1 a 40 (`DRILL_VARIANTS`). `scripts/export-content.ts` exporta las 40 de cada ejercicio; `tests/test_drills.py` comprueba en CPython que la solución pasa y el código inicial no, y `scripts/validate-pyodide.mjs` ejecuta todas las soluciones en Pyodide. Los valores esperados se calculan en TypeScript y se escriben en las pruebas; el ejemplo del enunciado es siempre el primer caso, de modo que un ejemplo mal calculado rompe la validación. Varios ejercicios de estadística comparan además con `statistics` (mediana, varianza, correlación, regresión) o `NormalDist`.
+- **Pruebas que enseñan.** Las pruebas llaman a la función con copias de los argumentos, prueban casos ocultos además del ejemplo (escribir el resultado a mano no pasa) y detectan errores típicos con mensajes concretos: devolver con `print` en lugar de `return`, modificar la lista recibida, no usar la herramienta que se practica (bucle, slicing, comprensión, `try`, recursión, `yield`, `re`) o usar la función de biblioteca cuando se practica la fórmula.
+- **Estado y recompensas.** Solo se guarda cada variante resuelta (`drills` en el estado: ejercicio, semilla, fecha, pistas, si se vio la solución y, en un repaso, la misión repasada). Se derivan 5 XP y 1 moneda por la primera resolución de cada variante sin ver la solución, con un máximo de 50 XP al día; repetir una variante ya resuelta no paga. Un ejercicio se abre al completar su misión.
+- **Repaso con variantes nuevas.** En la pantalla de repaso, una misión con ejercicios ofrece «Ejercicio nuevo»: una variante sin resolver del ejercicio menos practicado. Al superarla se registra el repaso de la misión (bien sin pistas, difícil con pistas; durante un repaso no se ofrece la solución) y paga el XP de repaso, no el del gimnasio.
+- **Sesión rápida.** Cinco ejercicios desbloqueados: primero los de misiones con repaso pendiente, los menos practicados y los de misiones que necesitaron ayuda; dos seguidos no comparten habilidad cuando hay alternativa.
+- **Carga.** El catálogo incluye los datos de cada ejercicio para la lista y los repasos; los generadores (unos 94 KB) se descargan al abrir un ejercicio.
+
 ## Pruebas de una misión
 
 Las pruebas son funciones `test_*` escritas en Python. Reciben el programa del alumno a través de la variable global `t` (`TestContext`):
@@ -85,6 +95,7 @@ Las pruebas comprueban **comportamiento** (resultados con varias entradas, efect
 | Reto avanzado | +50 % | +½ |
 | Interpretación correcta al primer intento | +10 | +1 |
 | Repaso superado | +10 | +2 |
+| Variante nueva del gimnasio sin ver la solución | +5 (máximo 50 al día) | +1 |
 | Logro | — | +20 |
 
 La solución de referencia solo se desbloquea tras dos comprobaciones o todas las pistas. Las monedas compran apariencia; nunca pistas, respuestas ni evaluaciones.

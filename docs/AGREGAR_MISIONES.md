@@ -104,3 +104,21 @@ Además de pytest (CPython), conviene ejecutar las misiones nuevas en el intérp
 cd web
 PYODIDE_DIST=/ruta/a/pyodide node scripts/validate-pyodide.mjs mi-nueva-mision
 ```
+
+## Ejercicios del gimnasio
+
+Un ejercicio vive en `web/src/content/practice/` y practica el concepto de una misión (`mission`), que lo desbloquea y cuyo repaso puede hacerse con él. Su función `make(r)` usa el generador `r` (`r.int`, `r.pick`, `r.sample`, `r.shuffle`) para crear una variante:
+
+- Calcula los valores esperados en TypeScript y escribe las pruebas con `fnTests(nombre, casos)` (funciones) o `programTests(casos)` (programas con `input()`) de `kit.ts`. El primer caso es el ejemplo del enunciado; los demás usan otros datos.
+- Usa `lit()` para escribir valores como literales de Python y `eq()` para mostrar números en el enunciado (añade «aproximadamente» si el redondeo oculta cifras).
+- Asegúrate de que el código inicial no pase con ningún caso (por ejemplo, que un filtro nunca dé siempre una lista vacía).
+- Si se practica una herramienta concreta, añade `requireSyntax([...])`; si se practica una fórmula, prohíbe la función de biblioteca equivalente.
+- Los identificadores empiezan por `g-` y no coinciden con los de las misiones.
+
+Después regenera el catálogo y valida las 40 variantes:
+
+```bash
+cd web && npm run catalog && npm test
+cd .. && .venv-pyodide-like/bin/python -m pytest -q tests/test_drills.py
+cd web && PYODIDE_DIST=/ruta/a/pyodide node scripts/validate-pyodide.mjs g-mi-ejercicio
+```

@@ -7,13 +7,12 @@ import { worldById } from "../content/worlds";
 import { CodeEditor } from "../components/CodeEditor";
 import { Markdown } from "../components/Markdown";
 import { PixelIcon } from "../components/pixel";
-import { OutputPanel, RunnerStatus, useRunner, type PanelResult } from "../components/PythonPanel";
+import { OutputPanel, RunnerStatus, useExec, useRunner, type PanelResult } from "../components/PythonPanel";
 import { Scene } from "../components/Scene";
 import * as A from "../engine/actions";
 import { isMissionUnlocked, missionReward } from "../engine/derive";
 import { CONTENT, useGame } from "../engine/store";
-import { python, RunStopped, RunTimeout } from "../python/runner";
-import type { RunRequest } from "../python/types";
+import { python } from "../python/runner";
 import { go, href } from "../router";
 
 function Section({ id, title, children, tone = "text-sky" }: { id: string; title: string; children: React.ReactNode; tone?: string }) {
@@ -25,25 +24,6 @@ function Section({ id, title, children, tone = "text-sky" }: { id: string; title
       {children}
     </section>
   );
-}
-
-function useExec() {
-  const { state } = useGame();
-  const [busy, setBusy] = useState(false);
-  python.timeoutMs = state.settings.timeoutSec * 1000;
-  const exec = async (req: RunRequest): Promise<PanelResult> => {
-    setBusy(true);
-    try {
-      const result = await python.run(req);
-      return { result, checked: Boolean(req.tests) };
-    } catch (e) {
-      if (e instanceof RunTimeout || e instanceof RunStopped) return { failure: e.message };
-      return { failure: `No se pudo ejecutar: ${(e as Error).message}. Comprueba tu conexión: Python se descarga la primera vez.` };
-    } finally {
-      setBusy(false);
-    }
-  };
-  return { exec, busy };
 }
 
 function Example({ m }: { m: Mission }) {

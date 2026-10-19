@@ -1,6 +1,6 @@
 // Runs every mission through the real Pyodide interpreter (WebAssembly) in Node, using the same
 // harness as the browser: reference solution and advanced solution must pass all tests, and the
-// worked example must run without errors.
+// worked example must run without errors. Every variant of every practice drill must pass too.
 //
 // Needs a full Pyodide distribution (with numpy, pandas, scipy… wheels), e.g. extracted from
 //   https://github.com/pyodide/pyodide/releases/download/0.28.3/pyodide-0.28.3.tar.bz2
@@ -17,9 +17,10 @@ if (!dist || !existsSync(join(dist, "pyodide-lock.json"))) {
 }
 
 execSync("npx tsx scripts/export-content.ts", { stdio: "inherit" });
-const { missions } = JSON.parse(readFileSync("content.json", "utf-8"));
+const { missions, drills } = JSON.parse(readFileSync("content.json", "utf-8"));
 const only = process.argv.slice(2);
 const selected = only.length ? missions.filter((m) => only.includes(m.id)) : missions;
+const selectedDrills = only.length ? drills.filter((d) => only.includes(d.id)) : drills;
 
 const { loadPyodide } = await import(pathToFileURL(join(resolve(dist), "pyodide.mjs")).href);
 const py = await loadPyodide({ indexURL: resolve(dist) + "/" });
@@ -82,9 +83,21 @@ for (const m of selected) {
   process.stdout.write(".");
 }
 console.log(`\n${selected.length} misiones en Pyodide ${py.version} · ${((Date.now() - t0) / 1000).toFixed(0)} s`);
+const t1 = Date.now();
+for (const d of selectedDrills) {
+  current = `${d.id}#${d.seed}`;
+  let r;
+  try {
+    r = await run(d.solution, d.tests, d.stdin, d.files);
+  } catch (e) {
+    r = { error: { type: "HarnessError", message: String(e).slice(0, 300) }, tests: [] };
+  }
+  if (!r.passed) failures.push(`${current} · ejercicio: ${describe(r)}`);
+}
+console.log(`${selectedDrills.length} variantes de ejercicios del gimnasio · ${((Date.now() - t1) / 1000).toFixed(0)} s`);
 if (slow.length) console.log(`\nEjecuciones lentas (> ${SLOW_MS / 1000} s):\n` + slow.join("\n"));
 if (failures.length) {
   console.log(`\n${failures.length} fallos:\n` + failures.join("\n"));
   process.exit(1);
 }
-console.log("Todas las soluciones, ejemplos y retos avanzados pasan en Pyodide.");
+console.log("Todas las soluciones, ejemplos, retos avanzados y variantes de ejercicios pasan en Pyodide.");

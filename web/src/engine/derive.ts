@@ -1,5 +1,6 @@
 // Everything the UI shows about progress is computed here from the stored facts.
-import type { Misconception, MissionCore, MissionMeta, World, WorldId } from "../content/types";
+import type { DrillMeta, Misconception, MissionCore, MissionMeta, World, WorldId } from "../content/types";
+import { DRILL_VARIANTS } from "../content/practice/kit";
 import { itemById } from "./catalog";
 import { dayKey, type ReviewLog, type SaveState } from "./state";
 
@@ -252,6 +253,86 @@ export function skillMastery(state: SaveState, missions: MissionMeta[], now = ne
   return [...bySkill.entries()].map(([skill, s]) => ({ skill, value: s.sum / s.n, missions: s.n, evidence: s.evidence }));
 }
 
+// ---------------------------------------------------------------- practice gym
+
+export const DRILL_XP = 5;
+export const DRILL_COINS = 1;
+/** Practice keeps paying off, but XP from the gym is capped per day so it cannot replace missions. */
+export const DRILL_DAILY_XP_CAP = 50;
+
+const variantKey = (d: string, seed: number) => `${d}#${seed}`;
+
+/**
+ * XP and coins from the gym. Only the first solve of each variant counts, and only when it was
+ * solved without seeing the solution and outside a review (reviews pay their own XP).
+ */
+export function drillRewards(state: SaveState, now = new Date()) {
+  const seen = new Set<string>();
+  const perDay = new Map<string, number>();
+  let xp = 0;
+  let coins = 0;
+  for (const log of [...(state.drills ?? [])].sort((a, b) => a.at.localeCompare(b.at))) {
+    const key = variantKey(log.d, log.seed);
+    if (seen.has(key)) continue;
+    seen.add(key);
+    if (log.sol || log.review) continue;
+    const day = dayKey(log.at);
+    const used = perDay.get(day) ?? 0;
+    if (used + DRILL_XP > DRILL_DAILY_XP_CAP) continue;
+    perDay.set(day, used + DRILL_XP);
+    xp += DRILL_XP;
+    coins += DRILL_COINS;
+  }
+  const today = perDay.get(dayKey(now)) ?? 0;
+  return { xp, coins, variants: seen.size, xpToday: today, capReached: today + DRILL_XP > DRILL_DAILY_XP_CAP };
+}
+
+/** Distinct variants of a drill solved, and when it was last solved. */
+export function drillStats(state: SaveState, drillId: string) {
+  const logs = (state.drills ?? []).filter((l) => l.d === drillId);
+  const seeds = new Set(logs.map((l) => l.seed));
+  return { solved: seeds.size, last: logs.reduce<string | null>((m, l) => (m === null || l.at > m ? l.at : m), null), seeds };
+}
+
+/** A variant the learner has not solved yet (any variant once all are solved). */
+export function pickSeed(state: SaveState, drillId: string, rand: () => number = Math.random): number {
+  const { seeds } = drillStats(state, drillId);
+  const fresh = Array.from({ length: DRILL_VARIANTS }, (_, i) => i + 1).filter((x) => !seeds.has(x));
+  const pool = fresh.length ? fresh : Array.from({ length: DRILL_VARIANTS }, (_, i) => i + 1);
+  return pool[Math.floor(rand() * pool.length)];
+}
+
+export const isDrillUnlocked = (state: SaveState, d: DrillMeta) => Boolean(state.missions[d.mission]?.done);
+
+/**
+ * A short mixed session: drills of missions whose review is due first, then those practised least
+ * and those whose mission needed help. Consecutive drills avoid repeating the same skill when
+ * possible (interleaving different ideas helps remembering them).
+ */
+export function buildSession(state: SaveState, content: Content, drills: DrillMeta[], n = 5, now = new Date(), rand: () => number = Math.random): string[] {
+  const due = new Set(dueReviews(reviewCards(state, content.missions), now).map((c) => c.m));
+  const today = dayKey(now);
+  const scored = drills
+    .filter((d) => isDrillUnlocked(state, d))
+    .map((d) => {
+      const st = drillStats(state, d.id);
+      const rec = state.missions[d.mission];
+      let score = rand() * 0.5 + 1 / (1 + st.solved);
+      if (due.has(d.mission)) score += 2;
+      if (rec && (rec.hints > 0 || rec.sawSolution)) score += 0.5;
+      if (st.last && dayKey(st.last) === today) score -= 1;
+      return { d, score };
+    })
+    .sort((a, b) => b.score - a.score);
+  const out: DrillMeta[] = [];
+  while (out.length < n && scored.length) {
+    const prev = out[out.length - 1]?.skills[0];
+    const i = scored.findIndex((x) => x.d.skills[0] !== prev);
+    out.push(scored.splice(i === -1 ? 0 : i, 1)[0].d);
+  }
+  return out.map((d) => d.id);
+}
+
 // ---------------------------------------------------------------- unlocking
 
 export function worldProgress(state: SaveState, missions: MissionMeta[], world: WorldId) {
@@ -308,6 +389,13 @@ const countDone = (s: SaveState, ms: MissionMeta[], pred: (m: MissionMeta) => bo
 
 export const ACHIEVEMENTS: (Achievement & { earned: (s: SaveState, c: Content) => boolean })[] = [
   { id: "primer-programa", title: "Primer programa ejecutado", description: "Ejecutaste tu primer programa de Python.", icon: "spark", earned: (s) => s.totalRuns > 0 },
+  {
+    id: "atleta-codigo",
+    title: "Atleta del código",
+    description: "Resolviste 25 ejercicios distintos del gimnasio sin ver la solución.",
+    icon: "flame",
+    earned: (s) => new Set((s.drills ?? []).filter((l) => !l.sol).map((l) => variantKey(l.d, l.seed))).size >= 25,
+  },
   { id: "maestro-bucles", title: "Maestro de los bucles", description: "Completaste todas las misiones de bucles.", icon: "loop", earned: (s, c) => doneIn(s, c.missions, (m) => m.skills.includes("bucles")) },
   {
     id: "cazador-errores",
@@ -362,6 +450,7 @@ export interface Summary {
   streak: StreakInfo;
   cards: ReviewCard[];
   due: ReviewCard[];
+  practice: ReturnType<typeof drillRewards>;
 }
 
 export function summarize(state: SaveState, content: Content, now = new Date()): Summary {
@@ -374,6 +463,9 @@ export function summarize(state: SaveState, content: Content, now = new Date()):
     coinsEarned += r.coins;
     if (state.missions[m.id]?.done) completed++;
   }
+  const practice = drillRewards(state, now);
+  xp += practice.xp;
+  coinsEarned += practice.coins;
   const passedReviews = state.reviews.filter((r) => r.grade !== "again").length;
   xp += passedReviews * REVIEW_XP;
   coinsEarned += passedReviews * 2;
@@ -393,6 +485,7 @@ export function summarize(state: SaveState, content: Content, now = new Date()):
     streak: computeStreak(state, now),
     cards,
     due: dueReviews(cards, now),
+    practice,
   };
 }
 

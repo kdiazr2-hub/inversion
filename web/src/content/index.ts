@@ -12,7 +12,11 @@ export const missionById: Record<string, MissionMeta> = Object.fromEntries(MISSI
 export const missionsByWorld = (world: WorldId) => MISSIONS.filter((m) => m.world === world);
 
 export { WORLDS };
-export { loadedWorld, loadWorld } from "./load";
+export { loadedWorld, loadPractice, loadWorld } from "./load";
+
+/** Practice drills (catalog entries) in curriculum order of their missions. */
+export const DRILLS = CATALOG.drills;
+export const drillMetaById = Object.fromEntries(DRILLS.map((d) => [d.id, d]));
 
 /** All stages of a progressive project, in order. */
 export const seriesStages = (seriesId: string) =>

@@ -1,10 +1,18 @@
 import { describe, expect, it } from "vitest";
 import { toMeta } from "../content/catalog";
-import type { Mission, MissionMeta, World } from "../content/types";
+import { DRILL_VARIANTS } from "../content/practice/kit";
+import type { DrillMeta, Mission, MissionMeta, World } from "../content/types";
 import * as A from "./actions";
 import { certificateId, verifyCertificate } from "./certificates";
 import {
+  buildSession,
   computeStreak,
+  DRILL_COINS,
+  DRILL_DAILY_XP_CAP,
+  DRILL_XP,
+  drillRewards,
+  pickSeed,
+  REVIEW_XP,
   isMissionUnlocked,
   isWorldUnlocked,
   levelFromXp,
@@ -289,5 +297,69 @@ describe("certificates", () => {
     expect(r.state!.certificates.w1).toBeDefined();
     expect(await certificateId(r.state!, grown, "w1")).toBe(id);
     expect(await verifyCertificate(r.state!, grown, id!)).toBe("w1");
+  });
+});
+
+describe("practice gym", () => {
+  const drill = (id: string, mission: string, skill: string): DrillMeta => ({ id, mission, world: "w1", title: id, skills: [skill], difficulty: 1, hintCount: 2 });
+  const at = (h: number) => new Date(T0.getTime() + h * 3_600_000);
+
+  it("pays each variant once, not after seeing the solution, and caps XP per day", () => {
+    let s = newSave(T0);
+    s = A.recordDrill(s, "d1", 1, { hints: 0, sol: false }, at(0));
+    s = A.recordDrill(s, "d1", 1, { hints: 0, sol: false }, at(1)); // same variant again: no XP
+    s = A.recordDrill(s, "d1", 2, { hints: 3, sol: true }, at(2)); // with the solution: no XP
+    expect(drillRewards(s, at(2))).toMatchObject({ xp: DRILL_XP, coins: DRILL_COINS, variants: 2 });
+    for (let seed = 3; seed < 3 + 20; seed++) s = A.recordDrill(s, "d1", seed, { hints: 0, sol: false }, at(3));
+    const r = drillRewards(s, at(3));
+    expect(r.xp).toBe(DRILL_DAILY_XP_CAP);
+    expect(r.capReached).toBe(true);
+    // The next day pays again.
+    s = A.recordDrill(s, "d1", 30, { hints: 0, sol: false }, at(30));
+    expect(drillRewards(s, at(30))).toMatchObject({ xp: DRILL_DAILY_XP_CAP + DRILL_XP, xpToday: DRILL_XP, capReached: false });
+    expect(summarize(s, content, at(30)).practice.xp).toBe(DRILL_DAILY_XP_CAP + DRILL_XP);
+  });
+
+  it("a drill solved as a review grades the mission's card instead of paying drill XP", () => {
+    let s = A.recordCheck(newSave(T0), content, a, pass, {}, T0);
+    const xpBefore = summarize(s, content, T0).xp;
+    s = A.recordDrill(s, "d1", 4, { hints: 0, sol: false, review: "a" }, at(72));
+    s = A.recordDrill(s, "d1", 5, { hints: 2, sol: false, review: "a" }, at(200));
+    expect(s.reviews.map((r) => r.grade)).toEqual(["good", "hard"]);
+    expect(drillRewards(s).xp).toBe(0);
+    expect(summarize(s, content, at(200)).xp).toBe(xpBefore + 2 * REVIEW_XP);
+    // A review for a mission that is not done is not recorded.
+    expect(A.recordDrill(newSave(T0), "d1", 1, { hints: 0, sol: false, review: "a" }, T0).reviews).toEqual([]);
+  });
+
+  it("picks variants not solved yet, and any variant once all are solved", () => {
+    let s = newSave(T0);
+    for (let seed = 1; seed < DRILL_VARIANTS; seed++) s = A.recordDrill(s, "d1", seed, { hints: 0, sol: false }, T0);
+    expect(pickSeed(s, "d1", () => 0.99)).toBe(DRILL_VARIANTS);
+    s = A.recordDrill(s, "d1", DRILL_VARIANTS, { hints: 0, sol: false }, T0);
+    const seed = pickSeed(s, "d1", () => 0.5);
+    expect(seed).toBeGreaterThanOrEqual(1);
+    expect(seed).toBeLessThanOrEqual(DRILL_VARIANTS);
+  });
+
+  it("builds sessions from unlocked drills, due reviews first, interleaving skills", () => {
+    let s = A.recordCheck(newSave(T0), content, a, pass, {}, T0);
+    s = A.recordCheck(s, content, b, pass, {}, T0);
+    const drills = [drill("x1", "a", "bucles"), drill("x2", "a", "bucles"), drill("y1", "b", "listas"), drill("z1", "c", "otra")];
+    const later = at(24 * 4); // card of "a" and "b" due after 3 days
+    const session = buildSession(s, content, drills, 3, later, () => 0);
+    expect(session).not.toContain("z1"); // mission c not done: locked
+    expect(session).toHaveLength(3);
+    expect(session[0]).not.toBe(undefined);
+    // No two consecutive drills share a skill when an alternative exists.
+    for (let i = 1; i < session.length - 1; i++) expect(drills.find((d) => d.id === session[i])!.skills[0]).not.toBe(drills.find((d) => d.id === session[i - 1])!.skills[0]);
+  });
+
+  it("old saves without a drill log still load", () => {
+    const old = JSON.parse(exportSave(newSave(T0)));
+    delete old.drills;
+    const r = importSave(JSON.stringify(old), content);
+    expect(r.ok).toBe(true);
+    expect(drillRewards(r.state!).xp).toBe(0);
   });
 });
