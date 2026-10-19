@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { loadWorld, missionById, MISSIONS, seriesStages, stageLabel, WORLDS } from "../content";
+import { DRILLS, loadWorld, missionById, MISSIONS, seriesStages, stageLabel, WORLDS } from "../content";
 import { text, type MissionMeta, type WorldId } from "../content/types";
 import { worldById } from "../content/worlds";
 import { EDITOR_THEMES } from "../components/editorThemes";
@@ -8,14 +8,27 @@ import { Avatar, PixelIcon } from "../components/pixel";
 import * as A from "../engine/actions";
 import { CATALOG, FREE_EFFECTS, FREE_THEMES, itemById, type ItemKind } from "../engine/catalog";
 import { certificateId, verifyCertificate } from "../engine/certificates";
-import { misconceptionStats, MISCONCEPTIONS, worldProgress } from "../engine/derive";
+import { drillStats, misconceptionStats, MISCONCEPTIONS, pickSeed, worldProgress } from "../engine/derive";
 import { dayKey } from "../engine/state";
 import { portfolioFilename, portfolioScript } from "../engine/portfolio";
 import { exportSave, importSave } from "../engine/storage";
 import { CONTENT, useGame } from "../engine/store";
 import { clearOfflineData, offlineStatus, type OfflineStatus } from "../offline";
-import { href } from "../router";
+import { go, href } from "../router";
 import { AvatarEditor } from "./Onboarding";
+
+/** Review with a new variant of a gym exercise for the mission, when it has one. */
+function ReviewDrillButton({ missionId }: { missionId: string }) {
+  const { state } = useGame();
+  const drills = DRILLS.filter((d) => d.mission === missionId);
+  if (!drills.length) return null;
+  const least = drills.reduce((a, b) => (drillStats(state, b.id).solved < drillStats(state, a.id).solved ? b : a));
+  return (
+    <button className="btn-sky" onClick={() => go(`practica/${least.id}/${pickSeed(state, least.id)}/repaso/${missionId}`)} title="Repasar con un ejercicio nuevo del gimnasio">
+      Ejercicio nuevo
+    </button>
+  );
+}
 
 export function Review() {
   const { state, summary } = useGame();
@@ -26,7 +39,7 @@ export function Review() {
       <div>
         <h1 className="px-title text-gold text-2xl">Repaso inteligente</h1>
         <p className="text-muted text-sm mt-1">
-          Cada misión completada vuelve unos días después. En el repaso resuelves de nuevo el reto desde el código inicial: si lo superas sin pistas, el siguiente repaso se aleja; con pistas, se repite antes; si no lo recuerdas, vuelve mañana.
+          Cada misión completada vuelve unos días después. En el repaso resuelves de nuevo el reto desde el código inicial o, si la misión tiene ejercicios en el gimnasio, una variante nueva que no has visto: si lo superas sin pistas, el siguiente repaso se aleja; con pistas, se repite antes; si no lo recuerdas, vuelve mañana.
         </p>
       </div>
       <section className="px-panel p-4">
@@ -42,6 +55,7 @@ export function Review() {
                     {worldById[missionById[c.m]?.world]?.short} · intervalo actual {c.interval} d · olvidos {c.lapses}
                   </span>
                 </span>
+                <ReviewDrillButton missionId={c.m} />
                 <a className="btn-gold" href={href(`mision/${c.m}/repaso`)}>
                   Repasar
                 </a>

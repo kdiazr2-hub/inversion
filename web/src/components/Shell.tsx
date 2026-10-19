@@ -8,8 +8,9 @@ import { Avatar, PixelIcon } from "./pixel";
 const NAV: { path: string; label: string; icon: string; main?: boolean }[] = [
   { path: "", label: "Inicio", icon: "star", main: true },
   { path: "mapa", label: "Mapa", icon: "tower", main: true },
+  { path: "gimnasio", label: "Gimnasio", icon: "flame", main: true },
   { path: "repaso", label: "Repaso", icon: "book", main: true },
-  { path: "labs", label: "Laboratorios", icon: "dice", main: true },
+  { path: "labs", label: "Laboratorios", icon: "dice" },
   { path: "proyectos", label: "Proyectos", icon: "column" },
   { path: "progreso", label: "Progreso", icon: "chart" },
   { path: "inventario", label: "Inventario", icon: "coin" },

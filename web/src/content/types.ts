@@ -124,6 +124,57 @@ export interface Mission {
   coins: number;
 }
 
+/** One concrete exercise of the practice gym: what a seed of a Drill produces. */
+export interface DrillVariant {
+  prompt: Text;
+  starter: string;
+  solution: string;
+  tests: string;
+  stdin?: string[];
+  files?: Record<string, string>;
+}
+
+/**
+ * Practice exercise with variants. `make` turns a seeded random generator into one concrete
+ * exercise (other numbers, data or wording); the gym offers seeds 1..DRILL_VARIANTS, and every one
+ * of them is validated (reference solution passes, starter fails) in CI.
+ */
+export interface Drill {
+  id: string;
+  /** Mission that teaches the concept: it unlocks the drill and is the card a drill review counts for. */
+  mission: string;
+  title: string;
+  skills: string[];
+  difficulty: 1 | 2 | 3 | 4 | 5;
+  packages?: string[];
+  hints: string[];
+  make: (r: Rng) => DrillVariant;
+}
+
+/** Deterministic pseudo-random source for drill variants. */
+export interface Rng {
+  /** Uniform in [0, 1). */
+  next(): number;
+  /** Integer in [a, b], both included. */
+  int(a: number, b: number): number;
+  pick<T>(xs: readonly T[]): T;
+  /** k distinct elements in random order. */
+  sample<T>(xs: readonly T[], k: number): T[];
+  shuffle<T>(xs: readonly T[]): T[];
+}
+
+/** Catalog entry of a drill (the gym list and reviews need no generator). */
+export interface DrillMeta {
+  id: string;
+  mission: string;
+  world: WorldId;
+  title: string;
+  skills: string[];
+  difficulty: 1 | 2 | 3 | 4 | 5;
+  packages?: string[];
+  hintCount: number;
+}
+
 /** Fields of a mission the engine needs to compute progress, unlocks and rewards. */
 export type MissionCore = Pick<Mission, "id" | "world" | "zone" | "title" | "kind" | "difficulty" | "skills" | "requires" | "series" | "xp" | "coins">;
 

@@ -1,7 +1,28 @@
 // Console + test report for a Python run, and a hook exposing the interpreter status.
 import { useEffect, useState } from "react";
-import { PYODIDE_VERSION, python, type RunnerState } from "../python/runner";
-import type { RunResult } from "../python/types";
+import { useGame } from "../engine/store";
+import { PYODIDE_VERSION, python, RunStopped, RunTimeout, type RunnerState } from "../python/runner";
+import type { RunRequest, RunResult } from "../python/types";
+
+/** Runs code with the learner's time limit and turns failures into readable panel messages. */
+export function useExec() {
+  const { state } = useGame();
+  const [busy, setBusy] = useState(false);
+  python.timeoutMs = state.settings.timeoutSec * 1000;
+  const exec = async (req: RunRequest): Promise<PanelResult> => {
+    setBusy(true);
+    try {
+      const result = await python.run(req);
+      return { result, checked: Boolean(req.tests) };
+    } catch (e) {
+      if (e instanceof RunTimeout || e instanceof RunStopped) return { failure: e.message };
+      return { failure: `No se pudo ejecutar: ${(e as Error).message}. Comprueba tu conexión: Python se descarga la primera vez.` };
+    } finally {
+      setBusy(false);
+    }
+  };
+  return { exec, busy };
+}
 
 export function useRunner() {
   const [st, setSt] = useState<{ state: RunnerState; detail: string }>({ state: python.state, detail: python.detail });

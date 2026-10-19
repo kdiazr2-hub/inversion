@@ -7211,5 +7211,501 @@ export const CATALOG: Catalog = {
    "w8-w9.ts",
    "w9-extra.ts"
   ]
- }
+ },
+ "drills": [
+  {
+   "id": "g-entrada",
+   "mission": "py-input",
+   "world": "w1",
+   "title": "Leer datos y responder",
+   "skills": [
+    "entrada",
+    "conversion"
+   ],
+   "difficulty": 1,
+   "hintCount": 2
+  },
+  {
+   "id": "g-operadores",
+   "mission": "py-aritmetica",
+   "world": "w1",
+   "title": "De palabras a operaciones",
+   "skills": [
+    "operadores"
+   ],
+   "difficulty": 1,
+   "hintCount": 2
+  },
+  {
+   "id": "g-conversion",
+   "mission": "py-conversion",
+   "world": "w1",
+   "title": "Precios escritos como texto",
+   "skills": [
+    "tipos",
+    "conversion"
+   ],
+   "difficulty": 2,
+   "hintCount": 2
+  },
+  {
+   "id": "g-cadenas",
+   "mission": "py-strings",
+   "world": "w1",
+   "title": "Transformar texto",
+   "skills": [
+    "cadenas"
+   ],
+   "difficulty": 2,
+   "hintCount": 2
+  },
+  {
+   "id": "g-logica",
+   "mission": "py-logica",
+   "world": "w1",
+   "title": "Reglas con and, or y not",
+   "skills": [
+    "operadores",
+    "booleanos"
+   ],
+   "difficulty": 2,
+   "hintCount": 2
+  },
+  {
+   "id": "g-condicionales",
+   "mission": "py-if",
+   "world": "w1",
+   "title": "Clasificar con if, elif y else",
+   "skills": [
+    "condicionales"
+   ],
+   "difficulty": 2,
+   "hintCount": 2
+  },
+  {
+   "id": "g-bucle-for",
+   "mission": "py-for",
+   "world": "w1",
+   "title": "Acumular con for",
+   "skills": [
+    "bucles"
+   ],
+   "difficulty": 2,
+   "hintCount": 2
+  },
+  {
+   "id": "g-bucle-while",
+   "mission": "py-while",
+   "world": "w1",
+   "title": "Repetir hasta que se cumpla",
+   "skills": [
+    "bucles"
+   ],
+   "difficulty": 3,
+   "hintCount": 2
+  },
+  {
+   "id": "g-listas",
+   "mission": "py-listas",
+   "world": "w1",
+   "title": "Filtrar una lista",
+   "skills": [
+    "listas"
+   ],
+   "difficulty": 2,
+   "hintCount": 2
+  },
+  {
+   "id": "g-slicing",
+   "mission": "py-indices",
+   "world": "w1",
+   "title": "Cortar listas con slicing",
+   "skills": [
+    "listas",
+    "indices"
+   ],
+   "difficulty": 2,
+   "hintCount": 2
+  },
+  {
+   "id": "g-conjuntos",
+   "mission": "py-tuplas-sets",
+   "world": "w1",
+   "title": "Operaciones con conjuntos",
+   "skills": [
+    "conjuntos"
+   ],
+   "difficulty": 2,
+   "hintCount": 2
+  },
+  {
+   "id": "g-diccionarios",
+   "mission": "py-dicts",
+   "world": "w1",
+   "title": "Contar con diccionarios",
+   "skills": [
+    "diccionarios"
+   ],
+   "difficulty": 2,
+   "hintCount": 2
+  },
+  {
+   "id": "g-parametros",
+   "mission": "py-funciones",
+   "world": "w1",
+   "title": "Funciones con valores por defecto",
+   "skills": [
+    "funciones"
+   ],
+   "difficulty": 2,
+   "hintCount": 2
+  },
+  {
+   "id": "g-comprensiones",
+   "mission": "py-comprension",
+   "world": "w1",
+   "title": "Listas y diccionarios en una línea",
+   "skills": [
+    "listas",
+    "comprension"
+   ],
+   "difficulty": 3,
+   "hintCount": 2
+  },
+  {
+   "id": "g-excepciones",
+   "mission": "py-errores",
+   "world": "w1",
+   "title": "Capturar errores con try y except",
+   "skills": [
+    "errores"
+   ],
+   "difficulty": 2,
+   "hintCount": 2
+  },
+  {
+   "id": "g-archivos",
+   "mission": "py-archivos",
+   "world": "w1",
+   "title": "Leer un archivo de texto",
+   "skills": [
+    "archivos"
+   ],
+   "difficulty": 2,
+   "hintCount": 2
+  },
+  {
+   "id": "g-csv",
+   "mission": "py-json-csv",
+   "world": "w1",
+   "title": "Sumar una columna de un CSV",
+   "skills": [
+    "archivos",
+    "csv"
+   ],
+   "difficulty": 3,
+   "hintCount": 2
+  },
+  {
+   "id": "g-recursion",
+   "mission": "w2-recursion",
+   "world": "w2",
+   "title": "Pensar en recursivo",
+   "skills": [
+    "recursion"
+   ],
+   "difficulty": 3,
+   "hintCount": 2
+  },
+  {
+   "id": "g-clases",
+   "mission": "w2-clases",
+   "world": "w2",
+   "title": "Diseñar una clase",
+   "skills": [
+    "poo"
+   ],
+   "difficulty": 3,
+   "hintCount": 2
+  },
+  {
+   "id": "g-generadores",
+   "mission": "w2-generadores",
+   "world": "w2",
+   "title": "Generar valores con yield",
+   "skills": [
+    "generadores"
+   ],
+   "difficulty": 3,
+   "hintCount": 2
+  },
+  {
+   "id": "g-regex",
+   "mission": "w2-regex",
+   "world": "w2",
+   "title": "Encontrar patrones con re",
+   "skills": [
+    "regex",
+    "cadenas"
+   ],
+   "difficulty": 3,
+   "hintCount": 2
+  },
+  {
+   "id": "g-pila",
+   "mission": "w2-estructuras",
+   "world": "w2",
+   "title": "Paréntesis equilibrados con una pila",
+   "skills": [
+    "estructuras",
+    "algoritmos"
+   ],
+   "difficulty": 3,
+   "hintCount": 2
+  },
+  {
+   "id": "g-numpy",
+   "mission": "w3-numpy",
+   "world": "w3",
+   "title": "Transformar un array sin bucles",
+   "skills": [
+    "numpy",
+    "vectorizacion"
+   ],
+   "difficulty": 2,
+   "hintCount": 2,
+   "packages": [
+    "numpy"
+   ]
+  },
+  {
+   "id": "g-pandas-filtrar",
+   "mission": "w3-filtrar",
+   "world": "w3",
+   "title": "Filtrar filas de un DataFrame",
+   "skills": [
+    "pandas",
+    "transformacion"
+   ],
+   "difficulty": 2,
+   "hintCount": 2,
+   "packages": [
+    "pandas"
+   ]
+  },
+  {
+   "id": "g-pandas-agrupar",
+   "mission": "w3-agrupar",
+   "world": "w3",
+   "title": "Agrupar y resumir",
+   "skills": [
+    "pandas",
+    "agrupacion"
+   ],
+   "difficulty": 3,
+   "hintCount": 2,
+   "packages": [
+    "pandas"
+   ]
+  },
+  {
+   "id": "g-pandas-limpieza",
+   "mission": "w3-limpieza",
+   "world": "w3",
+   "title": "Limpiar duplicados y vacíos",
+   "skills": [
+    "pandas",
+    "limpieza"
+   ],
+   "difficulty": 3,
+   "hintCount": 3,
+   "packages": [
+    "pandas"
+   ]
+  },
+  {
+   "id": "g-pandas-unir",
+   "mission": "w3-unir",
+   "world": "w3",
+   "title": "Unir dos tablas",
+   "skills": [
+    "pandas",
+    "uniones"
+   ],
+   "difficulty": 3,
+   "hintCount": 2,
+   "packages": [
+    "pandas"
+   ]
+  },
+  {
+   "id": "g-pandas-fechas",
+   "mission": "w3-fechas",
+   "world": "w3",
+   "title": "Resumir una serie por meses",
+   "skills": [
+    "pandas",
+    "series-temporales"
+   ],
+   "difficulty": 3,
+   "hintCount": 2,
+   "packages": [
+    "pandas"
+   ]
+  },
+  {
+   "id": "g-porcentajes",
+   "mission": "m-porcentajes",
+   "world": "w4",
+   "title": "Porcentajes y cambios sucesivos",
+   "skills": [
+    "porcentajes",
+    "proporciones"
+   ],
+   "difficulty": 2,
+   "hintCount": 2
+  },
+  {
+   "id": "g-centro",
+   "mission": "e-centro",
+   "world": "w4",
+   "title": "Medidas de centro a mano",
+   "skills": [
+    "tendencia-central"
+   ],
+   "difficulty": 2,
+   "hintCount": 2
+  },
+  {
+   "id": "g-dispersion",
+   "mission": "e-dispersion",
+   "world": "w4",
+   "title": "Varianza y desviación típica a mano",
+   "skills": [
+    "dispersion",
+    "varianza"
+   ],
+   "difficulty": 3,
+   "hintCount": 2
+  },
+  {
+   "id": "g-posicion",
+   "mission": "e-posicion",
+   "world": "w4",
+   "title": "Puntuación z y rango percentil",
+   "skills": [
+    "cuantiles",
+    "puntuaciones-z"
+   ],
+   "difficulty": 3,
+   "hintCount": 2
+  },
+  {
+   "id": "g-conteo",
+   "mission": "p-conteo",
+   "world": "w4",
+   "title": "Contar sin enumerar",
+   "skills": [
+    "conteo",
+    "combinatoria"
+   ],
+   "difficulty": 3,
+   "hintCount": 2
+  },
+  {
+   "id": "g-bayes",
+   "mission": "p-bayes",
+   "world": "w4",
+   "title": "Valores predictivos de una prueba",
+   "skills": [
+    "bayes",
+    "diagnostico"
+   ],
+   "difficulty": 3,
+   "hintCount": 2
+  },
+  {
+   "id": "g-binomial",
+   "mission": "d-discretas",
+   "world": "w4",
+   "title": "Probabilidades binomiales",
+   "skills": [
+    "distribuciones",
+    "binomial"
+   ],
+   "difficulty": 3,
+   "hintCount": 2
+  },
+  {
+   "id": "g-normal",
+   "mission": "d-normal",
+   "world": "w4",
+   "title": "Probabilidades con la normal",
+   "skills": [
+    "distribuciones",
+    "normal"
+   ],
+   "difficulty": 3,
+   "hintCount": 2
+  },
+  {
+   "id": "g-intervalo",
+   "mission": "i-intervalos",
+   "world": "w4",
+   "title": "Intervalos de confianza",
+   "skills": [
+    "intervalos-confianza"
+   ],
+   "difficulty": 3,
+   "hintCount": 2
+  },
+  {
+   "id": "g-correlacion",
+   "mission": "r-correlacion",
+   "world": "w4",
+   "title": "Correlación de Pearson a mano",
+   "skills": [
+    "correlacion"
+   ],
+   "difficulty": 3,
+   "hintCount": 2
+  },
+  {
+   "id": "g-regresion",
+   "mission": "r-lineal",
+   "world": "w4",
+   "title": "La recta de mínimos cuadrados",
+   "skills": [
+    "regresion"
+   ],
+   "difficulty": 3,
+   "hintCount": 2
+  },
+  {
+   "id": "g-riesgos",
+   "mission": "cl-riesgos",
+   "world": "w4",
+   "title": "Medidas de efecto en una tabla 2×2",
+   "skills": [
+    "clinica",
+    "riesgo-relativo",
+    "odds-ratio",
+    "nnt"
+   ],
+   "difficulty": 3,
+   "hintCount": 2
+  },
+  {
+   "id": "g-esperanza",
+   "mission": "p-variables-aleatorias",
+   "world": "w4",
+   "title": "Esperanza y varianza de una variable discreta",
+   "skills": [
+    "variables-aleatorias",
+    "esperanza"
+   ],
+   "difficulty": 3,
+   "hintCount": 2
+  }
+ ]
 };

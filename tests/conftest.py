@@ -43,3 +43,6 @@ def pytest_generate_tests(metafunc):
     if "mission" in metafunc.fixturenames:
         missions = CONTENT["missions"]
         metafunc.parametrize("mission", missions, ids=[m["id"] for m in missions])
+    if "drill" in metafunc.fixturenames:
+        drills = CONTENT["drills"]
+        metafunc.parametrize("drill", drills, ids=[f"{d['id']}#{d['seed']}" for d in drills])

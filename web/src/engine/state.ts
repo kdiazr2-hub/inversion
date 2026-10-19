@@ -59,6 +59,18 @@ export const ReviewLogSchema = z.object({
   grade: z.enum(["good", "hard", "again"]),
 });
 
+export const DrillLogSchema = z.object({
+  /** Drill id and variant (seed) solved. Only solves are logged: they are the facts rewards use. */
+  d: z.string().max(64),
+  seed: z.number().int().min(1).max(1000),
+  at: isoTime,
+  hints: z.number().int().min(0).max(20),
+  /** The reference solution was shown before passing. */
+  sol: z.boolean(),
+  /** Mission whose spaced-repetition review this solve counted for. */
+  review: z.string().max(64).optional(),
+});
+
 export const ActivitySchema = z.object({
   ms: z.number().min(0).max(86_400_000),
   runs: z.number().int().min(0),
@@ -82,6 +94,8 @@ export const SaveSchema = z.object({
   attempts: z.array(AttemptSchema).max(20_000),
   quizzes: z.array(QuizLogSchema).max(20_000),
   reviews: z.array(ReviewLogSchema).max(20_000),
+  /** Practice gym solves (absent in saves made before the gym existed). */
+  drills: z.array(DrillLogSchema).max(20_000).optional(),
   activity: z.record(isoDate, ActivitySchema),
   owned: z.array(z.string().max(32)).max(200),
   labs: z.record(z.string().max(32), z.number().int().min(0)),
@@ -106,6 +120,7 @@ export type MissionRecord = z.infer<typeof MissionRecordSchema>;
 export type Attempt = z.infer<typeof AttemptSchema>;
 export type QuizLog = z.infer<typeof QuizLogSchema>;
 export type ReviewLog = z.infer<typeof ReviewLogSchema>;
+export type DrillLog = z.infer<typeof DrillLogSchema>;
 export type Settings = z.infer<typeof SettingsSchema>;
 export type SaveState = z.infer<typeof SaveSchema>;
 
@@ -137,6 +152,7 @@ export function newSave(now = new Date()): SaveState {
     attempts: [],
     quizzes: [],
     reviews: [],
+    drills: [],
     activity: {},
     owned: [],
     labs: {},

@@ -134,6 +134,23 @@ export function recordReview(s: SaveState, missionId: string, grade: "good" | "h
   };
 }
 
+/**
+ * A solved practice variant. In review mode it also grades the mission's review card: good
+ * without help, hard with hints (the solution is not offered during a review).
+ */
+export function recordDrill(
+  s: SaveState,
+  drillId: string,
+  seed: number,
+  opts: { hints: number; sol: boolean; review?: string },
+  now = new Date(),
+): SaveState {
+  const log = { d: drillId, seed, at: now.toISOString(), hints: opts.hints, sol: opts.sol, ...(opts.review ? { review: opts.review } : {}) };
+  const next = { ...s, drills: trim([...(s.drills ?? []), log]) };
+  if (opts.review && s.missions[opts.review]?.done) return recordReview(next, opts.review, opts.sol ? "again" : opts.hints > 0 ? "hard" : "good", now);
+  return { ...next, activity: touchDay(s, now, { done: 1 }) };
+}
+
 export function addTime(s: SaveState, ms: number, now = new Date()): SaveState {
   if (ms <= 0) return s;
   return { ...s, activity: touchDay(s, now, { ms: Math.min(ms, 5 * 60_000) }) };
