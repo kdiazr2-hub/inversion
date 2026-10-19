@@ -71,7 +71,7 @@ export const eq = (x: number, digits = 6) => (Number(x.toFixed(digits)) === x ? 
 // Helpers available to every drill test. `_cerca` compares numbers with a tolerance and sequences
 // and dicts element by element; `_comprobar` calls the learner's function with copies of the
 // arguments and explains the usual mistake of printing instead of returning.
-const PREAMBLE = py`
+export const PREAMBLE = py`
 import copy
 import numbers
 
@@ -172,3 +172,42 @@ export const NOMBRES = ["Ada", "Alan", "Grace", "Linus", "Margaret", "Guido", "K
 export const CIUDADES = ["Lima", "Quito", "Bogotá", "Madrid", "Sevilla", "Córdoba", "Montevideo", "Santiago", "Cusco", "Valparaíso", "Rosario", "Mendoza", "Cali", "Granada", "Bilbao"];
 export const PALABRAS = ["sol", "luna", "rio", "bosque", "camino", "piedra", "nube", "fuego", "agua", "viento", "montana", "lago", "arbol", "estrella", "mapa", "llave", "puerta", "torre", "barco", "isla", "trigo", "plata", "hierro", "mar"];
 export const PRODUCTOS = ["pan", "queso", "manzanas", "arroz", "leche", "café", "tomates", "aceite", "huevos", "lentejas", "yogur", "harina"];
+
+/**
+ * Tests for a function that receives a SQLite connection: each case builds an in-memory database
+ * with `schema`, fills each table with its `inserts[i]` statement and `tables[i]` rows, calls the
+ * function and compares the rows it returns (order matters).
+ */
+export function sqlTests(name: string, schema: string, inserts: string[], cases: { tables: unknown[][][]; args?: unknown[]; expected: unknown }[]): string {
+  const rows = (cs: typeof cases) => `[${cs.map((c) => `(${lit(c.tables)}, ${lit(c.args ?? [])}, ${lit(c.expected)})`).join(", ")}]`;
+  return `${PREAMBLE}
+import sqlite3
+
+
+def _bd(tablas):
+    con = sqlite3.connect(":memory:")
+    con.executescript(${lit(schema)})
+    for sql, filas in zip(${lit(inserts)}, tablas):
+        con.executemany(sql, [tuple(f) for f in filas])
+    return con
+
+
+def _comprobar_sql(casos):
+    for tablas, args, esperado in casos:
+        r, salida = t.call(${lit(name)}, _bd(tablas), *args)
+        if r is None and salida.strip():
+            raise AssertionError("Tu función muestra el resultado con print, pero no lo devuelve: usa return.")
+        r = [list(x) if isinstance(x, (tuple, list)) else x for x in (r or [])]
+        assert _cerca(r, esperado, 1e-9), f"Con los datos {tablas!r}{' y argumentos ' + repr(args) if args else ''} se esperaba {esperado!r}, pero obtuviste {r!r}."
+
+
+def test_ejemplo():
+    """El ejemplo del enunciado"""
+    _comprobar_sql(${rows(cases.slice(0, 1))})
+
+
+def test_otros_datos():
+    """Funciona con otras tablas"""
+    _comprobar_sql(${rows(cases.slice(1))})
+`;
+}

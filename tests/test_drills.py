@@ -54,4 +54,4 @@ def test_structure(drill, content):
     assert drill["prompt"].strip() and "TODO" not in drill["prompt"]
     assert "def test_" in drill["tests"]
     for pkg in drill["packages"]:
-        assert pkg in {"numpy", "pandas", "scipy", "matplotlib"}, pkg
+        assert pkg in {"numpy", "pandas", "scipy", "matplotlib", "sqlite3", "scikit-learn"}, pkg
