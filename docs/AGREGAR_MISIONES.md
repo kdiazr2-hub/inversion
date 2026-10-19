@@ -1,9 +1,10 @@
 # Cómo añadir misiones
 
 1. Elige o crea un archivo en `web/src/content/missions/` (un archivo por bloque temático exporta un array `Mission[]`).
-2. Si creas un archivo nuevo, añádelo a `MISSIONS` en `web/src/content/index.ts`, en orden de currículo.
+2. Si creas un archivo nuevo, añádelo a `MISSIONS` en `web/src/content/full.ts`, en orden de currículo. Las etapas de un proyecto progresivo deben estar en el mismo mundo.
 3. Escribe la misión (plantilla abajo).
-4. Ejecuta las pruebas de contenido:
+4. Regenera el catálogo con `cd web && npm run catalog` (`npm run dev` lo hace al arrancar). La aplicación lee de `catalog.generated.ts` el mapa, las recompensas y los requisitos, y descarga el contenido completo de cada mundo al abrir una de sus misiones. Si olvidas este paso, `npm test` falla.
+5. Ejecuta las pruebas de contenido:
 
 ```bash
 .venv-pyodide-like/bin/python -m pytest -q -k mi-nueva-mision

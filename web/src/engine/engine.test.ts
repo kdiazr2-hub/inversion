@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
-import type { Mission, World } from "../content/types";
+import { toMeta } from "../content/catalog";
+import type { Mission, MissionMeta, World } from "../content/types";
 import * as A from "./actions";
 import { certificateId, verifyCertificate } from "./certificates";
 import {
@@ -19,7 +20,10 @@ import {
 import { newSave } from "./state";
 import { exportSave, importSave } from "./storage";
 
-const mk = (id: string, world: "w1" | "w2", requires: string[] = [], extra: Partial<Mission> = {}): Mission => ({
+// A test mission carries both its full content (for actions) and its catalog fields (for the engine).
+type TestMission = Mission & MissionMeta;
+const mk = (id: string, world: "w1" | "w2", requires: string[] = [], extra: Partial<Mission> = {}): TestMission => {
+  const full: Mission = {
   id,
   world,
   zone: "Z",
@@ -44,14 +48,17 @@ const mk = (id: string, world: "w1" | "w2", requires: string[] = [], extra: Part
   xp: 100,
   coins: 10,
   ...extra,
-});
+  };
+  return { ...full, ...toMeta(full), project: full.project, advanced: full.advanced };
+};
 
 const worlds: World[] = [
   { id: "w1", order: 1, name: "W1", short: "W1", goal: "", theme: "forest", syllabus: [], unlock: [], certificate: { title: "", competencies: [] } },
   { id: "w2", order: 2, name: "W2", short: "W2", goal: "", theme: "mountains", syllabus: [], unlock: [{ world: "w1", fraction: 0.5 }], certificate: { title: "", competencies: [] } },
 ];
-const content: Content = { worlds, missions: [mk("a", "w1"), mk("b", "w1", ["a"]), mk("c", "w2")] };
-const [a, b] = content.missions;
+const testMissions = [mk("a", "w1"), mk("b", "w1", ["a"]), mk("c", "w2")];
+const content: Content = { worlds, missions: testMissions };
+const [a, b] = testMissions;
 const pass = { passed: 3, total: 3, ok: true };
 const fail = { passed: 1, total: 3, ok: false, errorType: "NameError" };
 const T0 = new Date("2026-03-02T10:00:00");

@@ -130,7 +130,7 @@ export function Home() {
           <h2 className="px-title text-sm text-ember mb-2">Ideas para reforzar</h2>
           <ul className="grid md:grid-cols-3 gap-3">
             {miscon.map((m) => {
-              const probe = MISSIONS.find((x) => x.quiz.options.some((o) => o.misconception === m.tag) && state.missions[x.id]?.done);
+              const probe = MISSIONS.find((x) => x.probes.includes(m.tag) && state.missions[x.id]?.done);
               return (
                 <li key={m.tag} className="bg-night p-3 rounded-[2px] text-sm">
                   <div className="font-bold">{MISCONCEPTIONS[m.tag].title}</div>

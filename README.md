@@ -21,6 +21,7 @@ Un videojuego RPG para aprender **Python, matemáticas, probabilidad, estadísti
 - Node.js 20 o superior (probado con Node 22) y npm.
 - Para ejecutar las pruebas de contenido: Python 3.11+ (probado con 3.13).
 - Un navegador moderno. La primera vez que ejecutas código, el navegador descarga Pyodide (~10 MB) desde `cdn.jsdelivr.net`; los paquetes científicos se descargan al importarlos por primera vez.
+- En la versión publicada, un service worker guarda el juego, Pyodide y cada paquete usado, de modo que lo que ya abriste funciona sin conexión (Ajustes → «Jugar sin conexión» muestra lo guardado y permite borrarlo).
 
 ## Instalar y ejecutar
 
@@ -52,11 +53,11 @@ El flujo `.github/workflows/pages.yml` compila y publica `web/dist` en cada push
 
 | Qué | Comando | Qué comprueba |
 |---|---|---|
-| Unitarias (TypeScript) | `cd web && npm test` | Motor del juego (XP, niveles, rachas, repasos, logros, importación, certificados), biblioteca estadística y métodos numéricos de los laboratorios comparados con NumPy/SciPy/statsmodels/scikit-learn, modelos del laboratorio de ML y funciones del laboratorio de IA |
+| Unitarias (TypeScript) | `cd web && npm test` | Catálogo de misiones al día y carga de cada mundo completa; motor del juego (XP, niveles, rachas, repasos, logros, importación, certificados), biblioteca estadística y métodos numéricos de los laboratorios comparados con NumPy/SciPy/statsmodels/scikit-learn, modelos del laboratorio de ML y funciones del laboratorio de IA |
 | Tipos | `cd web && npm run typecheck` | TypeScript estricto |
 | Contenido (CPython) | ver abajo | Para **cada misión**: la solución pasa todas las pruebas, el código inicial no, el ejemplo se ejecuta, cada línea del ejemplo tiene explicación, el reto avanzado se comporta igual; en los proyectos progresivos, el código heredado más el esqueleto aún no pasa y la solución no rompe la etapa anterior; los enlaces a simuladores existen |
 | Contenido (Pyodide) | `cd web && PYODIDE_DIST=… node scripts/validate-pyodide.mjs` | Las mismas soluciones, ejemplos y retos avanzados en el intérprete real del navegador (WebAssembly), avisando de las ejecuciones de más de 5 s |
-| Extremo a extremo | `cd web && npm run build && npx playwright test` | Navegador real (Chromium, escritorio y móvil): crear personaje, resolver una misión con Pyodide, errores legibles, recompensas, persistencia tras recargar, bucles infinitos detenidos, laboratorios, todas las misiones de Python puro resueltas en la interfaz y, con `PYODIDE_DIST`, todas las misiones y el recorrido de un proyecto progresivo; descarga del portafolio |
+| Extremo a extremo | `cd web && npm run build && npx playwright test` | Navegador real (Chromium, escritorio y móvil): crear personaje, resolver una misión con Pyodide, errores legibles, recompensas, persistencia tras recargar, bucles infinitos detenidos, laboratorios, todas las misiones de Python puro resueltas en la interfaz y, con `PYODIDE_DIST`, todas las misiones y el recorrido de un proyecto progresivo; descarga del portafolio; el inicio no descarga misiones y cada mundo se carga al abrirlo; error visible si falla esa descarga; una misión ya abierta funciona sin conexión |
 
 Pruebas de contenido con las mismas versiones de bibliotecas que trae Pyodide 0.28.3:
 
@@ -87,7 +88,9 @@ harness/pq_harness.py      Motor de ejecución y pruebas de misiones (Pyodide y 
 tests/                     pytest: harness y validación de las 207 misiones
 web/
   src/content/             Mundos, misiones (un archivo por bloque o proyecto), datasets sintéticos, pestañas de laboratorio
-  scripts/                 Exportación del contenido y validación en Pyodide
+                           (full.ts: todas las misiones; catalog.generated.ts: catálogo ligero; load.ts: carga por mundo)
+  sw/                      Service worker (la compilación le añade la lista de archivos de esa versión)
+  scripts/                 Catálogo de misiones, exportación del contenido y validación en Pyodide
   src/engine/              Estado, reglas de juego derivadas, persistencia, certificados
   src/python/              Worker de Pyodide y fachada con tiempo límite
   src/stats/               Estadística numérica para los laboratorios (verificada con SciPy)
