@@ -8166,6 +8166,258 @@ export const CATALOG: Catalog = {
    ],
    "difficulty": 3,
    "hintCount": 2
+  },
+  {
+   "id": "g-activaciones",
+   "mission": "ai-neurona",
+   "world": "w7",
+   "title": "Funciones de activación",
+   "skills": [
+    "redes-neuronales"
+   ],
+   "difficulty": 2,
+   "hintCount": 2
+  },
+  {
+   "id": "g-perdidas",
+   "mission": "ai-neurona",
+   "world": "w7",
+   "title": "Funciones de pérdida",
+   "skills": [
+    "redes-neuronales",
+    "metricas"
+   ],
+   "difficulty": 2,
+   "hintCount": 2
+  },
+  {
+   "id": "g-softmax",
+   "mission": "ai-atencion",
+   "world": "w7",
+   "title": "Softmax con temperatura",
+   "skills": [
+    "transformers",
+    "probabilidad"
+   ],
+   "difficulty": 3,
+   "hintCount": 2
+  },
+  {
+   "id": "g-similitud",
+   "mission": "ai-embeddings",
+   "world": "w7",
+   "title": "Buscar por similitud de vectores",
+   "skills": [
+    "embeddings",
+    "busqueda"
+   ],
+   "difficulty": 3,
+   "hintCount": 2
+  },
+  {
+   "id": "g-tokens",
+   "mission": "ai-tokens",
+   "world": "w7",
+   "title": "Tokenizar texto",
+   "skills": [
+    "nlp",
+    "tokenizacion"
+   ],
+   "difficulty": 2,
+   "hintCount": 2
+  },
+  {
+   "id": "g-equidad",
+   "mission": "ai-equidad",
+   "world": "w7",
+   "title": "Métricas de equidad",
+   "skills": [
+    "equidad",
+    "metricas"
+   ],
+   "difficulty": 3,
+   "hintCount": 2
+  },
+  {
+   "id": "g-privacidad",
+   "mission": "ai-seguridad",
+   "world": "w7",
+   "title": "Ocultar datos personales",
+   "skills": [
+    "ia-responsable",
+    "regex",
+    "privacidad"
+   ],
+   "difficulty": 3,
+   "hintCount": 2
+  },
+  {
+   "id": "g-derivadas",
+   "mission": "ai-autograd",
+   "world": "w7",
+   "title": "Derivadas como las calcula autograd",
+   "skills": [
+    "autograd",
+    "derivadas"
+   ],
+   "difficulty": 3,
+   "hintCount": 2
+  },
+  {
+   "id": "g-config",
+   "mission": "eng-config",
+   "world": "w8",
+   "title": "Configuración desde variables de entorno",
+   "skills": [
+    "configuracion",
+    "tipos"
+   ],
+   "difficulty": 3,
+   "hintCount": 2
+  },
+  {
+   "id": "g-validar-peticion",
+   "mission": "eng-api",
+   "world": "w8",
+   "title": "Validar una petición",
+   "skills": [
+    "validacion",
+    "apis"
+   ],
+   "difficulty": 3,
+   "hintCount": 2
+  },
+  {
+   "id": "g-memoizacion",
+   "mission": "eng-rendimiento",
+   "world": "w8",
+   "title": "Memoización: no calcular dos veces",
+   "skills": [
+    "rendimiento",
+    "recursion"
+   ],
+   "difficulty": 3,
+   "hintCount": 2
+  },
+  {
+   "id": "g-dobles",
+   "mission": "eng-arquitectura",
+   "world": "w8",
+   "title": "Inyectar dependencias para poder probar",
+   "skills": [
+    "arquitectura",
+    "pruebas"
+   ],
+   "difficulty": 3,
+   "hintCount": 2
+  },
+  {
+   "id": "g-reintentos",
+   "mission": "eng-arquitectura",
+   "world": "w8",
+   "title": "Reintentos con espera exponencial",
+   "skills": [
+    "robustez",
+    "pruebas"
+   ],
+   "difficulty": 4,
+   "hintCount": 2
+  },
+  {
+   "id": "g-rentabilidad",
+   "mission": "mv-finanzas",
+   "world": "w9",
+   "title": "Rentabilidad y riesgo de una serie de precios",
+   "skills": [
+    "finanzas",
+    "series-temporales"
+   ],
+   "difficulty": 3,
+   "hintCount": 2
+  },
+  {
+   "id": "g-pronostico",
+   "mission": "mv-pronosticos",
+   "world": "w9",
+   "title": "Pronósticos de referencia",
+   "skills": [
+    "pronostico",
+    "series-temporales"
+   ],
+   "difficulty": 3,
+   "hintCount": 2
+  },
+  {
+   "id": "g-grafos",
+   "mission": "mv-redes",
+   "world": "w9",
+   "title": "Recorrer un grafo",
+   "skills": [
+    "grafos",
+    "algoritmos"
+   ],
+   "difficulty": 3,
+   "hintCount": 2
+  },
+  {
+   "id": "g-dijkstra",
+   "mission": "mv-redes",
+   "world": "w9",
+   "title": "El camino más corto con pesos",
+   "skills": [
+    "grafos",
+    "algoritmos"
+   ],
+   "difficulty": 4,
+   "hintCount": 2
+  },
+  {
+   "id": "g-adn",
+   "mission": "mv-bioinformatica",
+   "world": "w9",
+   "title": "Trabajar con secuencias de ADN",
+   "skills": [
+    "bioinformatica",
+    "cadenas"
+   ],
+   "difficulty": 2,
+   "hintCount": 2
+  },
+  {
+   "id": "g-recomendar",
+   "mission": "mv-recomendador",
+   "world": "w9",
+   "title": "Recomendar por usuarios parecidos",
+   "skills": [
+    "recomendacion",
+    "similitud"
+   ],
+   "difficulty": 3,
+   "hintCount": 2
+  },
+  {
+   "id": "g-contraccion",
+   "mission": "mv-bayes-jerarquico",
+   "world": "w9",
+   "title": "Contraer estimaciones hacia la media",
+   "skills": [
+    "estadistica-bayesiana",
+    "estimacion"
+   ],
+   "difficulty": 3,
+   "hintCount": 2
+  },
+  {
+   "id": "g-optimizar",
+   "mission": "mv-optimizacion",
+   "world": "w9",
+   "title": "Optimizar la producción",
+   "skills": [
+    "optimizacion",
+    "algoritmos"
+   ],
+   "difficulty": 3,
+   "hintCount": 2
   }
  ]
 };
