@@ -4297,6 +4297,136 @@ export const CATALOG: Catalog = {
    "coins": 13
   },
   {
+   "id": "db-ventanas",
+   "world": "w5",
+   "zone": "Bases de datos",
+   "title": "Las torres de vigía: CTE y funciones de ventana",
+   "kind": "lesson",
+   "difficulty": 4,
+   "skills": [
+    "sql",
+    "analitica"
+   ],
+   "requires": [
+    "db-joins"
+   ],
+   "objective": "Escribir consultas con `WITH` (CTE) y funciones de ventana: `RANK`, `ROW_NUMBER`, `SUM(...) OVER` y `LAG`, con `PARTITION BY` y `ORDER BY`.",
+   "hintCount": 3,
+   "probes": [],
+   "fileNames": [],
+   "xp": 95,
+   "coins": 13,
+   "packages": [
+    "sqlite3"
+   ]
+  },
+  {
+   "id": "db-diseno",
+   "world": "w5",
+   "zone": "Bases de datos",
+   "title": "Los cimientos de la biblioteca: claves, restricciones y transacciones",
+   "kind": "lesson",
+   "difficulty": 4,
+   "skills": [
+    "sql",
+    "bases-de-datos",
+    "integridad"
+   ],
+   "requires": [
+    "db-sql"
+   ],
+   "objective": "Diseñar tablas con claves primarias y foráneas, restricciones `NOT NULL`, `UNIQUE` y `CHECK`, y agrupar operaciones en transacciones que se aplican enteras o no se aplican.",
+   "hintCount": 3,
+   "probes": [],
+   "fileNames": [],
+   "xp": 95,
+   "coins": 13,
+   "packages": [
+    "sqlite3"
+   ]
+  },
+  {
+   "id": "db-scraping",
+   "world": "w5",
+   "zone": "APIs y automatización",
+   "title": "El cartógrafo educado: web scraping responsable",
+   "kind": "lesson",
+   "difficulty": 4,
+   "skills": [
+    "scraping",
+    "html",
+    "etica-datos"
+   ],
+   "requires": [
+    "db-apis"
+   ],
+   "objective": "Leer `robots.txt` con `urllib.robotparser`, extraer datos de una tabla HTML con `html.parser`, seguir la paginación respetando las zonas prohibidas y limpiar los valores extraídos.",
+   "hintCount": 3,
+   "probes": [],
+   "fileNames": [
+    "robots.txt",
+    "catalogo.html",
+    "catalogo_2.html",
+    "privado_ofertas.html"
+   ],
+   "xp": 95,
+   "coins": 13
+  },
+  {
+   "id": "db-json-anidado",
+   "world": "w5",
+   "zone": "APIs y automatización",
+   "title": "Las cajas dentro de cajas: JSON anidado a tablas",
+   "kind": "lesson",
+   "difficulty": 3,
+   "skills": [
+    "json",
+    "pandas",
+    "transformacion"
+   ],
+   "requires": [
+    "db-apis"
+   ],
+   "objective": "Aplanar JSON anidado con `pd.json_normalize` (objetos anidados y listas con `record_path` y `meta`), unir las tablas resultantes y tratar listas vacías y valores nulos.",
+   "hintCount": 3,
+   "probes": [],
+   "fileNames": [
+    "pedidos.json"
+   ],
+   "xp": 85,
+   "coins": 12,
+   "packages": [
+    "pandas"
+   ]
+  },
+  {
+   "id": "db-calidad",
+   "world": "w5",
+   "zone": "APIs y automatización",
+   "title": "El inspector de la aduana: validar datos antes de cargarlos",
+   "kind": "lesson",
+   "difficulty": 3,
+   "skills": [
+    "calidad-datos",
+    "pandas",
+    "validacion"
+   ],
+   "requires": [
+    "db-apis"
+   ],
+   "objective": "Expresar reglas de calidad (unicidad, formato de fecha, integridad referencial, categorías permitidas, rangos), aplicarlas fila a fila, separar los registros válidos de la cuarentena e informar de cuántos fallan cada regla.",
+   "hintCount": 3,
+   "probes": [],
+   "fileNames": [
+    "registros.csv"
+   ],
+   "xp": 85,
+   "coins": 12,
+   "packages": [
+    "pandas"
+   ]
+  },
+  {
    "id": "db-etl",
    "world": "w5",
    "zone": "APIs y automatización",
@@ -5179,6 +5309,130 @@ export const CATALOG: Catalog = {
     "numpy",
     "pandas",
     "scipy",
+    "scikit-learn"
+   ]
+  },
+  {
+   "id": "ml-roc",
+   "world": "w6",
+   "zone": "Evaluación",
+   "title": "El vigía y sus falsas alarmas: curva ROC y umbral por costes",
+   "kind": "lesson",
+   "difficulty": 4,
+   "skills": [
+    "metricas",
+    "roc",
+    "umbral"
+   ],
+   "requires": [
+    "ml-metricas"
+   ],
+   "objective": "Construir la curva ROC a mano recorriendo los umbrales, calcular el AUC por trapecios y elegir el umbral que minimiza el coste esperado cuando un falso positivo y un falso negativo no cuestan lo mismo.",
+   "hintCount": 3,
+   "probes": [
+    "accuracy-desbalance"
+   ],
+   "fileNames": [],
+   "xp": 95,
+   "coins": 13,
+   "packages": [
+    "numpy",
+    "scikit-learn"
+   ],
+   "lab": {
+    "lab": "estadistica",
+    "tab": "roc",
+    "label": "Mover el umbral y ver la curva ROC"
+   }
+  },
+  {
+   "id": "ml-calibracion",
+   "world": "w6",
+   "zone": "Evaluación",
+   "title": "Las promesas del oráculo: probabilidades calibradas",
+   "kind": "lesson",
+   "difficulty": 4,
+   "skills": [
+    "metricas",
+    "calibracion",
+    "probabilidad"
+   ],
+   "requires": [
+    "ml-roc"
+   ],
+   "objective": "Medir la calibración de un clasificador con la puntuación de Brier y la tabla de fiabilidad (probabilidad media predicha frente a frecuencia observada por intervalos), y distinguir calibración de capacidad de ordenar (AUC).",
+   "hintCount": 3,
+   "probes": [],
+   "fileNames": [],
+   "xp": 95,
+   "coins": 13,
+   "packages": [
+    "numpy",
+    "scikit-learn"
+   ]
+  },
+  {
+   "id": "ml-curvas",
+   "world": "w6",
+   "zone": "Evaluación",
+   "title": "El mapa del sesgo y la varianza: curvas de validación y de aprendizaje",
+   "kind": "lesson",
+   "difficulty": 4,
+   "skills": [
+    "validacion",
+    "sobreajuste",
+    "diagnostico"
+   ],
+   "requires": [
+    "ml-validacion"
+   ],
+   "objective": "Calcular una curva de validación (rendimiento frente a un hiperparámetro) y una curva de aprendizaje (rendimiento frente al tamaño de entrenamiento) con validación cruzada, elegir la complejidad y diagnosticar sesgo alto o varianza alta.",
+   "hintCount": 3,
+   "probes": [
+    "sobreajuste"
+   ],
+   "fileNames": [],
+   "xp": 95,
+   "coins": 13,
+   "packages": [
+    "numpy",
+    "pandas",
+    "scikit-learn"
+   ],
+   "lab": {
+    "lab": "ml",
+    "tab": "polinomios",
+    "label": "Ver el sobreajuste al subir la complejidad"
+   }
+  },
+  {
+   "id": "ml-variables",
+   "world": "w6",
+   "zone": "Modelos",
+   "title": "El orfebre de los datos: ingeniería de variables",
+   "kind": "lesson",
+   "difficulty": 4,
+   "skills": [
+    "ingenieria-variables",
+    "regresion",
+    "pipelines"
+   ],
+   "requires": [
+    "ml-pipeline"
+   ],
+   "objective": "Crear variables nuevas a partir de las existentes (transformaciones logarítmicas, cocientes, indicadores de interacción, categorías codificadas) y medir con validación cruzada cuánto mejoran un modelo, sin usar el objetivo para construirlas.",
+   "hintCount": 3,
+   "probes": [
+    "data-leakage"
+   ],
+   "fileNames": [
+    "viviendas.csv"
+   ],
+   "xp": 95,
+   "coins": 13,
+   "packages": [
+    "numpy",
+    "pandas",
     "scikit-learn"
    ]
   },
@@ -7186,10 +7440,12 @@ export const CATALOG: Catalog = {
   "w5": [
    "proj-planta.ts",
    "proj-sensores.ts",
-   "w5-data-eng.ts"
+   "w5-data-eng.ts",
+   "w5-extra.ts"
   ],
   "w6": [
    "proj-viviendas.ts",
+   "w6-ml-eval.ts",
    "w6-ml-extra.ts",
    "w6-ml.ts"
   ],
@@ -7703,6 +7959,210 @@ export const CATALOG: Catalog = {
    "skills": [
     "variables-aleatorias",
     "esperanza"
+   ],
+   "difficulty": 3,
+   "hintCount": 2
+  },
+  {
+   "id": "g-sql-filtro",
+   "mission": "db-sql",
+   "world": "w5",
+   "title": "Consultas con WHERE y ORDER BY",
+   "skills": [
+    "sql"
+   ],
+   "difficulty": 2,
+   "hintCount": 2,
+   "packages": [
+    "sqlite3"
+   ]
+  },
+  {
+   "id": "g-sql-agrupar",
+   "mission": "db-sql",
+   "world": "w5",
+   "title": "GROUP BY y HAVING",
+   "skills": [
+    "sql",
+    "agrupacion"
+   ],
+   "difficulty": 3,
+   "hintCount": 2,
+   "packages": [
+    "sqlite3"
+   ]
+  },
+  {
+   "id": "g-sql-join",
+   "mission": "db-joins",
+   "world": "w5",
+   "title": "Unir tablas con JOIN",
+   "skills": [
+    "sql",
+    "uniones"
+   ],
+   "difficulty": 3,
+   "hintCount": 2,
+   "packages": [
+    "sqlite3"
+   ]
+  },
+  {
+   "id": "g-sql-parametros",
+   "mission": "db-sql",
+   "world": "w5",
+   "title": "Consultas seguras con parámetros",
+   "skills": [
+    "sql",
+    "seguridad"
+   ],
+   "difficulty": 3,
+   "hintCount": 2,
+   "packages": [
+    "sqlite3"
+   ]
+  },
+  {
+   "id": "g-sql-ventana",
+   "mission": "db-ventanas",
+   "world": "w5",
+   "title": "Funciones de ventana",
+   "skills": [
+    "sql",
+    "analitica"
+   ],
+   "difficulty": 4,
+   "hintCount": 2,
+   "packages": [
+    "sqlite3"
+   ]
+  },
+  {
+   "id": "g-json-aplanar",
+   "mission": "db-json-anidado",
+   "world": "w5",
+   "title": "Aplanar diccionarios anidados",
+   "skills": [
+    "json",
+    "recursion"
+   ],
+   "difficulty": 3,
+   "hintCount": 2
+  },
+  {
+   "id": "g-validar",
+   "mission": "db-calidad",
+   "world": "w5",
+   "title": "Validar registros",
+   "skills": [
+    "calidad-datos",
+    "validacion"
+   ],
+   "difficulty": 3,
+   "hintCount": 2
+  },
+  {
+   "id": "g-metricas",
+   "mission": "ml-metricas",
+   "world": "w6",
+   "title": "Métricas de clasificación a mano",
+   "skills": [
+    "metricas"
+   ],
+   "difficulty": 2,
+   "hintCount": 2
+  },
+  {
+   "id": "g-confusion-umbral",
+   "mission": "ml-clasificacion",
+   "world": "w6",
+   "title": "Del umbral a la matriz de confusión",
+   "skills": [
+    "clasificacion",
+    "umbral"
+   ],
+   "difficulty": 2,
+   "hintCount": 2
+  },
+  {
+   "id": "g-metricas-regresion",
+   "mission": "ml-regresion",
+   "world": "w6",
+   "title": "Errores de un modelo de regresión",
+   "skills": [
+    "regresion",
+    "metricas"
+   ],
+   "difficulty": 2,
+   "hintCount": 2
+  },
+  {
+   "id": "g-escalado",
+   "mission": "ml-pipeline",
+   "world": "w6",
+   "title": "Escalar sin fuga de datos",
+   "skills": [
+    "preprocesamiento",
+    "data-leakage"
+   ],
+   "difficulty": 3,
+   "hintCount": 2
+  },
+  {
+   "id": "g-kfold",
+   "mission": "ml-validacion",
+   "world": "w6",
+   "title": "Repartir datos en pliegues",
+   "skills": [
+    "validacion"
+   ],
+   "difficulty": 3,
+   "hintCount": 2
+  },
+  {
+   "id": "g-knn",
+   "mission": "ml-knn-svm",
+   "world": "w6",
+   "title": "Clasificar con k vecinos",
+   "skills": [
+    "knn",
+    "distancias"
+   ],
+   "difficulty": 3,
+   "hintCount": 2
+  },
+  {
+   "id": "g-auc",
+   "mission": "ml-roc",
+   "world": "w6",
+   "title": "El AUC como probabilidad",
+   "skills": [
+    "roc",
+    "metricas"
+   ],
+   "difficulty": 3,
+   "hintCount": 2
+  },
+  {
+   "id": "g-gradiente",
+   "mission": "ml-gradiente",
+   "world": "w6",
+   "title": "Pasos de descenso de gradiente",
+   "skills": [
+    "optimizacion",
+    "gradiente"
+   ],
+   "difficulty": 4,
+   "hintCount": 2
+  },
+  {
+   "id": "g-brier",
+   "mission": "ml-calibracion",
+   "world": "w6",
+   "title": "Puntuar probabilidades",
+   "skills": [
+    "calibracion",
+    "metricas"
    ],
    "difficulty": 3,
    "hintCount": 2
