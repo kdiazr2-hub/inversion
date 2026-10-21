@@ -1465,6 +1465,37 @@ export const CATALOG: Catalog = {
    ]
   },
   {
+   "id": "w3-seaborn",
+   "world": "w3",
+   "zone": "Visualización",
+   "title": "Los tapices del consejo: visualización estadística con Seaborn",
+   "kind": "lesson",
+   "difficulty": 3,
+   "skills": [
+    "visualizacion",
+    "seaborn",
+    "pandas"
+   ],
+   "requires": [
+    "w3-graficos"
+   ],
+   "objective": "Pasar una tabla de formato ancho a formato largo con `melt`, dibujar con Seaborn un diagrama de cajas por grupo y un mapa de calor de correlaciones con una escala de color adecuada, y comprobar los gráficos leyendo sus elementos.",
+   "hintCount": 3,
+   "probes": [
+    "correlacion-causalidad"
+   ],
+   "fileNames": [
+    "ventas_tiendas.csv"
+   ],
+   "xp": 85,
+   "coins": 12,
+   "packages": [
+    "pandas",
+    "matplotlib",
+    "seaborn"
+   ]
+  },
+  {
    "id": "proj-informe-ventas",
    "world": "w3",
    "zone": "Proyecto del Reino",
@@ -6451,6 +6482,28 @@ export const CATALOG: Catalog = {
    ]
   },
   {
+   "id": "eng-async",
+   "world": "w8",
+   "zone": "APIs",
+   "title": "Las campanas de la torre: programación asíncrona por dentro",
+   "kind": "lesson",
+   "difficulty": 4,
+   "skills": [
+    "asincronia",
+    "corrutinas",
+    "concurrencia"
+   ],
+   "requires": [
+    "eng-api"
+   ],
+   "objective": "Entender `async def`, `await` y el bucle de eventos: escribir corrutinas que esperan, ejecutar varias de forma concurrente con un bucle de eventos propio y comprobar que el tiempo total es el de la más lenta, no la suma.",
+   "hintCount": 3,
+   "probes": [],
+   "fileNames": [],
+   "xp": 100,
+   "coins": 14
+  },
+  {
    "id": "pd-servicio-1",
    "world": "w8",
    "zone": "Proyecto de la Torre",
@@ -6828,6 +6881,53 @@ export const CATALOG: Catalog = {
     "tab": "bayes",
     "label": "Actualización bayesiana"
    }
+  },
+  {
+   "id": "mv-vision",
+   "world": "w9",
+   "zone": "Visión por computador",
+   "title": "El ojo del autómata: imágenes, convoluciones y dígitos",
+   "kind": "lesson",
+   "difficulty": 4,
+   "skills": [
+    "vision",
+    "numpy",
+    "clasificacion"
+   ],
+   "requires": [],
+   "objective": "Tratar una imagen en escala de grises como una matriz de NumPy, programar la convolución que usan las redes convolucionales, detectar bordes con el filtro de Sobel y clasificar dígitos escritos a mano con el método del centroide más cercano, comprobando cada paso con SciPy y scikit-learn.",
+   "hintCount": 3,
+   "probes": [],
+   "fileNames": [],
+   "xp": 100,
+   "coins": 14,
+   "packages": [
+    "numpy",
+    "scipy",
+    "scikit-learn"
+   ]
+  },
+  {
+   "id": "mv-agentes",
+   "world": "w9",
+   "zone": "Agentes de IA",
+   "title": "El aprendiz de mago: agentes que usan herramientas",
+   "kind": "lesson",
+   "difficulty": 4,
+   "skills": [
+    "agentes",
+    "ia-responsable",
+    "json"
+   ],
+   "requires": [],
+   "objective": "Programar el bucle de un agente: pedir al modelo el siguiente paso, ejecutar la herramienta que pide con sus argumentos, devolverle el resultado y parar al recibir una respuesta o al llegar al límite de pasos, con las defensas necesarias: lista de herramientas permitidas, validación de la salida del modelo y errores que no detienen el programa.",
+   "hintCount": 3,
+   "probes": [
+    "alucinacion"
+   ],
+   "fileNames": [],
+   "xp": 100,
+   "coins": 14
   },
   {
    "id": "ps-demanda-1",
@@ -7423,7 +7523,8 @@ export const CATALOG: Catalog = {
   ],
   "w3": [
    "proj-gastos.ts",
-   "w3-data.ts"
+   "w3-data.ts",
+   "w3-extra.ts"
   ],
   "w4": [
    "proj-arboles.ts",
@@ -7457,6 +7558,7 @@ export const CATALOG: Catalog = {
   ],
   "w8": [
    "proj-servicio.ts",
+   "w8-async.ts",
    "w8-extra.ts",
    "w8-w9.ts"
   ],
@@ -7465,7 +7567,8 @@ export const CATALOG: Catalog = {
    "proj-demanda.ts",
    "proj-pendulo.ts",
    "w8-w9.ts",
-   "w9-extra.ts"
+   "w9-extra.ts",
+   "w9-vision-agentes.ts"
   ]
  },
  "drills": [
@@ -8415,6 +8518,58 @@ export const CATALOG: Catalog = {
    "skills": [
     "optimizacion",
     "algoritmos"
+   ],
+   "difficulty": 3,
+   "hintCount": 2
+  },
+  {
+   "id": "g-formato",
+   "mission": "w3-seaborn",
+   "world": "w3",
+   "title": "Formato largo y formato ancho",
+   "skills": [
+    "pandas",
+    "transformacion"
+   ],
+   "difficulty": 2,
+   "hintCount": 2,
+   "packages": [
+    "pandas"
+   ]
+  },
+  {
+   "id": "g-concurrencia",
+   "mission": "eng-async",
+   "world": "w8",
+   "title": "Tareas con un límite de concurrencia",
+   "skills": [
+    "asincronia",
+    "concurrencia"
+   ],
+   "difficulty": 3,
+   "hintCount": 2
+  },
+  {
+   "id": "g-convolucion",
+   "mission": "mv-vision",
+   "world": "w9",
+   "title": "Convolución y pooling a mano",
+   "skills": [
+    "vision",
+    "matrices"
+   ],
+   "difficulty": 3,
+   "hintCount": 2
+  },
+  {
+   "id": "g-herramientas",
+   "mission": "mv-agentes",
+   "world": "w9",
+   "title": "Despachar llamadas a herramientas",
+   "skills": [
+    "agentes",
+    "json",
+    "seguridad"
    ],
    "difficulty": 3,
    "hintCount": 2

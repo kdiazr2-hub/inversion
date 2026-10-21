@@ -37,6 +37,19 @@ def pq_run(payload):
     return json.dumps(pq_harness.run(p["code"], p.get("tests", ""), p.get("stdin"), p.get("files")))
 `);
 const pqRun = py.globals.get("pq_run");
+
+// Same as the browser: packages outside the distribution install from the wheels bundled with the game.
+const WHEELS = { seaborn: "seaborn-0.13.2-py3-none-any.whl" };
+const installed = new Set();
+async function installBundled(source) {
+  const imports = py.pyodide_py.code.find_imports(source).toJs();
+  for (const mod of imports.filter((m) => m in WHEELS && !installed.has(m))) {
+    await py.loadPackage("micropip", { messageCallback: () => {} });
+    py.FS.writeFile(`/tmp/${WHEELS[mod]}`, readFileSync(`public/wheels/${WHEELS[mod]}`));
+    await py.pyimport("micropip").install(`emfs:/tmp/${WHEELS[mod]}`);
+    installed.add(mod);
+  }
+}
 const pqWarm = py.globals.get("pq_warm");
 
 // Runs slower than this (package downloads excluded) risk the browser's default 15 s limit.
@@ -47,6 +60,7 @@ let current = "";
 async function run(code, tests, stdin, files) {
   const source = code + "\n" + (tests ?? "");
   await py.loadPackagesFromImports(source, { messageCallback: () => {}, errorCallback: (e) => console.error(e) });
+  await installBundled(source);
   // Same as the browser worker: heavy imports happen before the clock starts.
   pqWarm(JSON.stringify(py.pyodide_py.code.find_imports(source).toJs()));
   const t0 = performance.now();
