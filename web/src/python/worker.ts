@@ -9,7 +9,8 @@ let py: any = null;
 
 const post = (msg: WorkerOut) => self.postMessage(msg);
 
-async function init(indexURL: string, harness: string) {
+async function init(indexURL: string, harness: string, bundled: Record<string, string>) {
+  wheels = bundled;
   try {
     self.importScripts(indexURL + "pyodide.js");
     py = await loadPyodide({ indexURL });
@@ -31,8 +32,9 @@ def pq_run(payload):
   }
 }
 
-// Packages that live on PyPI rather than in the Pyodide distribution.
-const MICROPIP = ["seaborn"];
+// Packages outside the Pyodide distribution, installed with micropip from the wheels bundled with
+// the game (module name → wheel URL).
+let wheels: Record<string, string> = {};
 const installed = new Set<string>();
 const HEAVY = /^(numpy|pandas|scipy|sklearn|statsmodels|matplotlib|seaborn|networkx|pydantic)(\.|$)/;
 const warmed = new Set<string>();
@@ -49,11 +51,11 @@ async function run(msg: Extract<WorkerIn, { kind: "run" }>) {
       errorCallback: () => {},
     });
     const imports: string[] = py.pyodide_py.code.find_imports(source).toJs();
-    const extra = imports.filter((m) => MICROPIP.includes(m) && !installed.has(m));
+    const extra = imports.filter((m) => m in wheels && !installed.has(m));
     if (extra.length) {
       post({ kind: "status", id, phase: "packages", detail: extra.join(", ") });
       await py.loadPackage("micropip");
-      await py.pyimport("micropip").install(extra);
+      await py.pyimport("micropip").install(extra.map((m) => wheels[m]));
       extra.forEach((m) => installed.add(m));
     }
     // First imports of numpy/pandas/scikit-learn take seconds: do them before the run clock starts.
@@ -79,6 +81,6 @@ async function run(msg: Extract<WorkerIn, { kind: "run" }>) {
 
 self.onmessage = (ev: MessageEvent<WorkerIn>) => {
   const msg = ev.data;
-  if (msg.kind === "init") void init(msg.indexURL, msg.harness);
+  if (msg.kind === "init") void init(msg.indexURL, msg.harness, msg.wheels);
   else if (msg.kind === "run") void run(msg);
 };

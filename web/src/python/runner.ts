@@ -4,6 +4,7 @@ import harnessSource from "@harness/pq_harness.py?raw";
 import type { RunRequest, RunResult, WorkerOut } from "./types";
 
 import { pyodideUrl, PYODIDE_VERSION } from "./pyodideUrl";
+import { WHEELS } from "./wheels";
 
 export { PYODIDE_VERSION };
 export const PYODIDE_URL: string = pyodideUrl(import.meta.env.VITE_PYODIDE_URL as string | undefined);
@@ -70,7 +71,9 @@ class PythonRunner {
         reject(new Error(e.message));
       };
     });
-    worker.postMessage({ kind: "init", indexURL: PYODIDE_URL, harness: harnessSource });
+    // Bundled wheels are served next to the app: resolve them against the page, not the worker.
+    const wheels = Object.fromEntries(Object.entries(WHEELS).map(([mod, file]) => [mod, new URL(`wheels/${file}`, document.baseURI).href]));
+    worker.postMessage({ kind: "init", indexURL: PYODIDE_URL, harness: harnessSource, wheels });
     return this.ready;
   }
 

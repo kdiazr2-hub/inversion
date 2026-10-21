@@ -22,7 +22,7 @@ _plt.close("all")
 # do the same here so a cold import does not count against the per-mission time limit.
 import pq_harness as _pq  # noqa: E402
 
-_pq.warm_imports(["numpy", "pandas", "scipy.stats", "sklearn.linear_model", "sklearn.compose", "statsmodels.api", "pydantic", "networkx"])
+_pq.warm_imports(["numpy", "pandas", "scipy.stats", "sklearn.linear_model", "sklearn.compose", "statsmodels.api", "pydantic", "networkx", "seaborn"])
 
 
 def _export():

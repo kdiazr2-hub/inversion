@@ -11,10 +11,11 @@ import { DRILLS_W6 } from "./w6";
 import { DRILLS_W7 } from "./w7";
 import { DRILLS_W8 } from "./w8";
 import { DRILLS_W9 } from "./w9";
+import { DRILLS_TEMAS } from "./temas";
 
 export { DRILL_VARIANTS };
 
-export const DRILLS: Drill[] = [...DRILLS_W1, ...DRILLS_W2, ...DRILLS_W3, ...DRILLS_W4, ...DRILLS_W5, ...DRILLS_W6, ...DRILLS_W7, ...DRILLS_W8, ...DRILLS_W9];
+export const DRILLS: Drill[] = [...DRILLS_W1, ...DRILLS_W2, ...DRILLS_W3, ...DRILLS_W4, ...DRILLS_W5, ...DRILLS_W6, ...DRILLS_W7, ...DRILLS_W8, ...DRILLS_W9, ...DRILLS_TEMAS];
 
 export const drillById: Record<string, Drill> = Object.fromEntries(DRILLS.map((d) => [d.id, d]));
 

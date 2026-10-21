@@ -30,7 +30,7 @@ export interface RunRequest {
 }
 
 export type WorkerIn =
-  | { kind: "init"; indexURL: string; harness: string }
+  | { kind: "init"; indexURL: string; harness: string; wheels: Record<string, string> }
   | ({ kind: "run"; id: number } & RunRequest);
 
 export type WorkerOut =
