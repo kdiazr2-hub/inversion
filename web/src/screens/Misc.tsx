@@ -10,7 +10,8 @@ import { CATALOG, FREE_EFFECTS, FREE_THEMES, itemById, type ItemKind } from "../
 import { certificateId, verifyCertificate } from "../engine/certificates";
 import { drillStats, misconceptionStats, MISCONCEPTIONS, pickSeed, worldProgress } from "../engine/derive";
 import { dayKey } from "../engine/state";
-import { portfolioFilename, portfolioScript } from "../engine/portfolio";
+import { pieceLabels, portfolioFilename, portfolioScript, projectFiles, projectZipName, type PortfolioPiece } from "../engine/portfolio";
+import { zip } from "../engine/zip";
 import { exportSave, importSave } from "../engine/storage";
 import { CONTENT, useGame } from "../engine/store";
 import { clearOfflineData, offlineStatus, type OfflineStatus } from "../offline";
@@ -303,6 +304,14 @@ export function Portfolio() {
       },
       (e: unknown) => toast(`No se pudo descargar ${name}: ${e instanceof Error ? e.message : String(e)}`, "bad"),
     );
+  // The whole project (script, data, requirements.txt, README, .gitignore) as one .zip.
+  const downloadProject = (m: MissionMeta, piece: PortfolioPiece, code: string) =>
+    loadWorld(m.world)
+      .then((full) => {
+        const files = projectFiles(piece, code, full[m.id]?.files ?? {});
+        downloadBlob(projectZipName(piece), new Blob([zip(files.map((f) => ({ name: f.name, data: f.content })))], { type: "application/zip" }));
+      })
+      .catch((e: unknown) => toast(`No se pudo preparar el proyecto: ${e instanceof Error ? e.message : String(e)}`, "bad"));
   // A progressive project appears once, when its last stage is done (its code contains every stage).
   const items = MISSIONS.filter(
     (m) =>
@@ -315,13 +324,14 @@ export function Portfolio() {
     <div className="flex flex-col gap-5 max-w-4xl">
       <div>
         <h1 className="px-title text-gold text-2xl">Portafolio</h1>
-        <p className="text-muted text-sm">Proyectos terminados y retos avanzados resueltos, con tu código y tus notas. Exporta tu progreso desde Ajustes para conservarlo.</p>
+        <p className="text-muted text-sm">
+          Proyectos terminados y retos avanzados resueltos, con tu código y tus notas. Exporta tu progreso desde Ajustes para conservarlo. Cada proyecto se descarga listo para ejecutarlo en tu ordenador: mira cómo en <a className="text-sky underline" href={href("entorno")}>Programar en tu ordenador</a>.
+        </p>
       </div>
       {items.length === 0 && <p className="px-panel p-4 text-muted">Todavía está vacío. Termina un proyecto o un reto avanzado para añadir tu primera pieza.</p>}
       {items.map((m) => {
         const rec = state.missions[m.id]!;
-        const kind = m.series ? `Proyecto progresivo · ${m.series.of} etapas` : m.kind === "project" ? "Proyecto" : "Reto avanzado";
-        const title = m.series ? m.series.title : m.kind === "project" ? m.title : m.advanced!.title;
+        const { kind, title } = pieceLabels(m);
         const date = dayKey(rec.advancedDone ?? rec.done!);
         const code = m.kind === "project" ? rec.code : rec.advancedCode;
         const piece = { title, kind, world: worldById[m.world].short, skills: m.skills, date, notes: rec.notes, packages: m.packages, files: m.fileNames };
@@ -342,6 +352,9 @@ export function Portfolio() {
             </details>
             {code !== undefined && (
               <div className="flex flex-wrap gap-2">
+                <button className="btn-gold text-sm" onClick={() => void downloadProject(m, piece, code)}>
+                  Descargar proyecto (.zip)
+                </button>
                 <button className="btn-sky text-sm" onClick={() => downloadText(portfolioFilename(piece), portfolioScript(piece, code), "text/x-python")}>
                   Descargar código (.py)
                 </button>
@@ -363,13 +376,17 @@ export function Portfolio() {
   );
 }
 
-/** Saves ``content`` as a file through a temporary object URL. */
-function downloadText(name: string, content: string, type: string) {
+/** Saves ``blob`` as a file through a temporary object URL. */
+function downloadBlob(name: string, blob: Blob) {
   const a = document.createElement("a");
-  a.href = URL.createObjectURL(new Blob([content], { type: `${type};charset=utf-8` }));
+  a.href = URL.createObjectURL(blob);
   a.download = name;
   a.click();
   setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+}
+
+function downloadText(name: string, content: string, type: string) {
+  downloadBlob(name, new Blob([content], { type: `${type};charset=utf-8` }));
 }
 
 function CertificateCard({ world }: { world: WorldId }) {

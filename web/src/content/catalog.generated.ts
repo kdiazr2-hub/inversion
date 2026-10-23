@@ -1010,6 +1010,79 @@ export const CATALOG: Catalog = {
    "coins": 10
   },
   {
+   "id": "w2-terminal",
+   "world": "w2",
+   "zone": "Fuera del navegador",
+   "title": "La consola del refugio: la terminal, las rutas y los archivos",
+   "kind": "lesson",
+   "difficulty": 3,
+   "skills": [
+    "terminal",
+    "rutas",
+    "archivos"
+   ],
+   "requires": [
+    "w2-clases",
+    "py-archivos"
+   ],
+   "objective": "Entender qué hace una terminal: la carpeta de trabajo, las rutas absolutas y relativas (`.`, `..`, `~`), las órdenes básicas y cómo un programa recibe sus argumentos en `sys.argv`; y construir una terminal que trabaja con archivos reales.",
+   "hintCount": 3,
+   "probes": [],
+   "fileNames": [],
+   "xp": 90,
+   "coins": 13
+  },
+  {
+   "id": "w2-entornos",
+   "world": "w2",
+   "zone": "Fuera del navegador",
+   "title": "El almacén de herramientas: pip, versiones y entornos virtuales",
+   "kind": "lesson",
+   "difficulty": 3,
+   "skills": [
+    "dependencias",
+    "entornos-virtuales",
+    "versiones"
+   ],
+   "requires": [
+    "w2-terminal"
+   ],
+   "objective": "Entender qué son pip, PyPI y un entorno virtual; leer `requirements.txt` y `pyproject.toml`; comprobar si las versiones instaladas cumplen los requisitos y ordenar versiones correctamente.",
+   "hintCount": 3,
+   "probes": [],
+   "fileNames": [
+    "requirements.txt",
+    "pyproject.toml"
+   ],
+   "xp": 85,
+   "coins": 12,
+   "packages": [
+    "packaging"
+   ]
+  },
+  {
+   "id": "w2-git",
+   "world": "w2",
+   "zone": "Fuera del navegador",
+   "title": "El diario del refugio: Git por dentro",
+   "kind": "lesson",
+   "difficulty": 4,
+   "skills": [
+    "git",
+    "control-de-versiones",
+    "hashing"
+   ],
+   "requires": [
+    "w2-entornos"
+   ],
+   "objective": "Entender el flujo de trabajo de Git (área de trabajo, preparación y repositorio; ramas y remotos) y cómo identifica cada versión: calcular los mismos identificadores que calcula git para archivos, carpetas y commits, y detectar qué archivos cambiaron.",
+   "hintCount": 3,
+   "probes": [],
+   "fileNames": [],
+   "xp": 100,
+   "coins": 14
+  },
+  {
    "id": "pc-calc-1",
    "world": "w2",
    "zone": "Proyecto de las Montañas",
@@ -7519,6 +7592,7 @@ export const CATALOG: Catalog = {
   ],
   "w2": [
    "proj-calculadora.ts",
+   "w2-entorno.ts",
    "w2-logic.ts"
   ],
   "w3": [
@@ -8570,6 +8644,42 @@ export const CATALOG: Catalog = {
     "agentes",
     "json",
     "seguridad"
+   ],
+   "difficulty": 3,
+   "hintCount": 2
+  },
+  {
+   "id": "g-rutas",
+   "mission": "w2-terminal",
+   "world": "w2",
+   "title": "Rutas como las resuelve la terminal",
+   "skills": [
+    "rutas",
+    "terminal"
+   ],
+   "difficulty": 2,
+   "hintCount": 2
+  },
+  {
+   "id": "g-versiones",
+   "mission": "w2-entornos",
+   "world": "w2",
+   "title": "Comparar versiones",
+   "skills": [
+    "versiones",
+    "dependencias"
+   ],
+   "difficulty": 2,
+   "hintCount": 2
+  },
+  {
+   "id": "g-git",
+   "mission": "w2-git",
+   "world": "w2",
+   "title": "Estado e historial de un repositorio",
+   "skills": [
+    "git",
+    "control-de-versiones"
    ],
    "difficulty": 3,
    "hintCount": 2

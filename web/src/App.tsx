@@ -19,6 +19,7 @@ const MLLab = lazy(() => import("./labs/MLLab").then((m) => ({ default: m.MLLab 
 const AILab = lazy(() => import("./labs/AILab").then((m) => ({ default: m.AILab })));
 const Gym = lazy(() => import("./screens/Gym").then((m) => ({ default: m.Gym })));
 const DrillView = lazy(() => import("./screens/Gym").then((m) => ({ default: m.DrillView })));
+const Guide = lazy(() => import("./screens/Guide").then((m) => ({ default: m.Guide })));
 
 function NotFound() {
   return (
@@ -89,6 +90,9 @@ export function App() {
         break;
       case "proyectos":
         page = <Projects />;
+        break;
+      case "entorno":
+        page = <Guide />;
         break;
       case "portafolio":
         page = <Portfolio />;
