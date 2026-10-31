@@ -3,7 +3,7 @@ import type { Mission, MissionCore } from "../content/types";
 import { CATALOG, itemById } from "./catalog";
 import type { Content } from "./derive";
 import { isMissionUnlocked, summarize } from "./derive";
-import { dayKey, emptyRecord, type Avatar, type SaveState, type Settings } from "./state";
+import { dayKey, emptyRecord, type Avatar, type Feedback, type SaveState, type Settings } from "./state";
 
 const MAX_LOG = 5000;
 const trim = <T,>(xs: T[]) => (xs.length > MAX_LOG ? xs.slice(xs.length - MAX_LOG) : xs);
@@ -95,6 +95,16 @@ export function saveDraft(s: SaveState, missionId: string, code: string, advance
 export function saveNotes(s: SaveState, missionId: string, notes: string): SaveState {
   const rec = { ...(s.missions[missionId] ?? emptyRecord()), notes: notes.slice(0, 20_000) };
   return { ...s, missions: { ...s.missions, [missionId]: rec } };
+}
+
+/** Stores the learner's opinion of a mission (empty fields are dropped). */
+export function saveFeedback(s: SaveState, missionId: string, fb: Omit<Feedback, "at">, now = new Date()): SaveState {
+  const entry: Feedback = { at: now.toISOString() };
+  if (fb.clarity) entry.clarity = fb.clarity;
+  if (fb.difficulty) entry.difficulty = fb.difficulty;
+  const stuck = fb.stuck?.trim().slice(0, 2000);
+  if (stuck) entry.stuck = stuck;
+  return { ...s, feedback: { ...(s.feedback ?? {}), [missionId]: entry } };
 }
 
 /** Hints only count against the bonus while the mission is still unsolved. */

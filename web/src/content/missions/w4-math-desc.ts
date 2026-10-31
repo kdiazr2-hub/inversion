@@ -1024,7 +1024,7 @@ notas = np.array([55, 61, 64, 70, 72, 75, 78, 81, 88, 96])
 print(np.percentile(notas, [25, 50, 75]))
 z = (82 - notas.mean()) / notas.std(ddof=1)
 print(round(z, 2))`,
-      lines: ["NumPy.", "Diez notas ordenadas.", "Q1, mediana y Q3 con interpolación lineal.", "Puntuación z de un 82.", "≈ 0,72 desviaciones por encima de la media."],
+      lines: ["NumPy.", "Diez notas ordenadas.", "Q1, mediana y Q3 con interpolación lineal.", "Puntuación z de un 82.", "0,64: el 82 está 0,64 desviaciones típicas por encima de la media."],
     },
     challenge: [
       "Sin NumPy:",

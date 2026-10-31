@@ -444,6 +444,11 @@ const BASE_POINTS: Pt[] = [
 function Regression() {
   const [pts, setPts] = useState<Pt[]>(BASE_POINTS);
   const [mode, setMode] = useState<"add" | "remove">("add");
+  // Keyboard alternative to clicking on the chart.
+  const [nx, setNx] = useState("5");
+  const [ny, setNy] = useState("5");
+  const typed = { x: Number(nx.replace(",", ".")), y: Number(ny.replace(",", ".")) };
+  const typedOk = nx.trim() !== "" && ny.trim() !== "" && typed.x >= 0 && typed.x <= 10 && typed.y >= 0 && typed.y <= 10;
   const xs = pts.map((p) => p.x);
   const ys = pts.map((p) => p.y);
   const ok = pts.length >= 3 && new Set(xs).size > 1;
@@ -454,7 +459,29 @@ function Regression() {
     <LabLayout
       controls={
         <>
-          <p className="text-sm text-muted">Haz clic en el gráfico para {mode === "add" ? "añadir un punto" : "quitar el punto más cercano"}.</p>
+          <p className="text-sm text-muted">Haz clic en el gráfico para {mode === "add" ? "añadir un punto" : "quitar el punto más cercano"}, o escribe sus coordenadas.</p>
+          <form
+            className="flex flex-wrap items-end gap-2"
+            onSubmit={(e) => {
+              e.preventDefault();
+              if (typedOk) setPts((ps) => [...ps, typed]);
+            }}
+          >
+            <label className="flex flex-col text-sm">
+              x (0 a 10)
+              <input className="input w-20" inputMode="decimal" value={nx} onChange={(e) => setNx(e.target.value)} />
+            </label>
+            <label className="flex flex-col text-sm">
+              y (0 a 10)
+              <input className="input w-20" inputMode="decimal" value={ny} onChange={(e) => setNy(e.target.value)} />
+            </label>
+            <button className="btn-ghost" type="submit" disabled={!typedOk}>
+              Añadir punto
+            </button>
+          </form>
+          <button className="btn-ghost" onClick={() => setPts((ps) => ps.slice(0, -1))} disabled={!pts.length}>
+            Quitar el último punto
+          </button>
           <Select label="Modo" value={mode} onChange={setMode} options={[{ value: "add", label: "Añadir puntos" }, { value: "remove", label: "Quitar puntos" }]} />
           <button className="btn-ghost" onClick={() => setPts([...BASE_POINTS, { x: 9.5, y: 1 }])}>
             Añadir un atípico influyente

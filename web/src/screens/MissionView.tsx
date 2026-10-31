@@ -9,6 +9,7 @@ import { Markdown } from "../components/Markdown";
 import { PixelIcon } from "../components/pixel";
 import { OutputPanel, RunnerStatus, useExec, useRunner, type PanelResult } from "../components/PythonPanel";
 import { Scene } from "../components/Scene";
+import { describeResult, TutorPanel } from "../components/TutorPanel";
 import * as A from "../engine/actions";
 import { isMissionUnlocked, missionReward } from "../engine/derive";
 import { CONTENT, useGame } from "../engine/store";
@@ -114,6 +115,58 @@ function Quiz({ m }: { m: Mission }) {
           {answers[0]?.ok && last.ok && <span className="block text-gold mt-1">+10 XP por acertar al primer intento</span>}
         </div>
       )}
+    </div>
+  );
+}
+
+const CLARITY = [
+  ["clara", "Clara"],
+  ["regular", "Regular"],
+  ["confusa", "Confusa"],
+] as const;
+const DIFFICULTY = [
+  ["facil", "Fácil"],
+  ["justa", "Justa"],
+  ["dificil", "Difícil"],
+] as const;
+
+/** The learner's opinion of the mission, kept in the save for pilot tests (exported from Ajustes). */
+function MissionFeedback({ m }: { m: Mission }) {
+  const { state, update } = useGame();
+  const saved = state.feedback?.[m.id];
+  const [clarity, setClarity] = useState(saved?.clarity);
+  const [difficulty, setDifficulty] = useState(saved?.difficulty);
+  const [stuck, setStuck] = useState(saved?.stuck ?? "");
+  const [done, setDone] = useState(false);
+  const group = <T extends string>(label: string, options: readonly (readonly [T, string])[], value: T | undefined, set: (v: T) => void) => (
+    <div role="radiogroup" aria-label={label} className="flex flex-wrap items-center gap-2">
+      <span className="text-sm w-36">{label}</span>
+      {options.map(([v, l]) => (
+        <button key={v} role="radio" aria-checked={value === v} className={`chip ${value === v ? "bg-gold text-ink" : ""}`} onClick={() => (set(v), setDone(false))}>
+          {l}
+        </button>
+      ))}
+    </div>
+  );
+  return (
+    <div className="px-panel p-4 flex flex-col gap-3" data-testid="mission-feedback">
+      <p className="text-sm text-muted">Tu opinión se guarda solo en este navegador. Si participas en una prueba piloto, puedes exportarla desde Ajustes para compartirla.</p>
+      {group("¿La explicación fue…?", CLARITY, clarity, setClarity)}
+      {group("¿El reto fue…?", DIFFICULTY, difficulty, setDifficulty)}
+      <label className="text-sm flex flex-col gap-1">
+        ¿Dónde te atascaste o qué no se entendía?
+        <textarea className="input min-h-20" value={stuck} maxLength={2000} onChange={(e) => (setStuck(e.target.value), setDone(false))} />
+      </label>
+      <div className="flex items-center gap-3">
+        <button className="btn-sky self-start" disabled={!clarity && !difficulty && !stuck.trim()} onClick={() => (update((s) => A.saveFeedback(s, m.id, { clarity, difficulty, stuck })), setDone(true))}>
+          Guardar opinión
+        </button>
+        {done && (
+          <span className="text-sm text-leaf" role="status">
+            Guardada. ¡Gracias!
+          </span>
+        )}
+      </div>
     </div>
   );
 }
@@ -477,6 +530,11 @@ function MissionScreen({ m, meta, prev, review }: { m: Mission; meta: MissionMet
           <Markdown text={text(m.review)} />
         </Section>
       )}
+      {!review && (
+        <Section id="opinion" title="Tu opinión sobre esta misión">
+          <MissionFeedback m={m} />
+        </Section>
+      )}
     </div>
   );
 
@@ -568,6 +626,17 @@ function MissionScreen({ m, meta, prev, review }: { m: Mission; meta: MissionMet
         >
           No lo recuerdo: programar para mañana
         </button>
+      )}
+      {!review && (
+        <TutorPanel
+          context={() => ({
+            title: m.title,
+            objective: text(m.objective),
+            challenge: adv ? text(m.advanced!.prompt) : text(m.challenge),
+            code: currentCode,
+            lastResult: describeResult(out),
+          })}
+        />
       )}
       {rec?.done && !review && (
         <div className="px-panel p-4 flex flex-col gap-2">

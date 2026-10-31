@@ -12,10 +12,14 @@ import { drillStats, misconceptionStats, MISCONCEPTIONS, pickSeed, worldProgress
 import { dayKey } from "../engine/state";
 import { pieceLabels, portfolioFilename, portfolioScript, projectFiles, projectZipName, type PortfolioPiece } from "../engine/portfolio";
 import { zip } from "../engine/zip";
+import { readBackupInfo, recordBackup, requestPersistence, storagePersisted } from "../engine/backup";
+import { feedbackCsv, feedbackRows } from "../engine/feedback";
 import { exportSave, importSave } from "../engine/storage";
 import { CONTENT, useGame } from "../engine/store";
+import { autoBackupSupported, backupPermission, chooseBackupFile, forgetBackupFile, writeBackupFile, type BackupPermission } from "../backupFile";
 import { clearOfflineData, offlineStatus, type OfflineStatus } from "../offline";
 import { go, href } from "../router";
+import { setTutorKey, tutorKey } from "../tutor";
 import { AvatarEditor } from "./Onboarding";
 
 /** Review with a new variant of a gym exercise for the mission, when it has one. */
@@ -376,6 +380,152 @@ export function Portfolio() {
   );
 }
 
+/** Last copy, the browser's eviction protection and the optional automatic copy to a file. */
+function BackupPanel() {
+  const { state, toast } = useGame();
+  const [info, setInfo] = useState(readBackupInfo);
+  const [persisted, setPersisted] = useState<boolean | undefined>();
+  const [perm, setPerm] = useState<BackupPermission>("none");
+  const supported = autoBackupSupported();
+  useEffect(() => {
+    void storagePersisted().then(setPersisted);
+    if (supported) void backupPermission().then(setPerm);
+  }, [supported]);
+  // The export button and the automatic copy update the date; re-read it now and then.
+  useEffect(() => {
+    const id = setInterval(() => setInfo(readBackupInfo()), 2000);
+    return () => clearInterval(id);
+  }, []);
+  const writeNow = async () => {
+    const ok = await writeBackupFile(exportSave(state));
+    if (ok) setInfo(recordBackup());
+    return ok;
+  };
+  return (
+    <div className="flex flex-col gap-2 text-sm border-t-2 border-panel2 pt-3" data-testid="backup">
+      <p>{info.at ? `Última copia: ${new Date(info.at).toLocaleString("es")}.` : "Todavía no has hecho ninguna copia de tu progreso."}</p>
+      {persisted === true && <p className="text-leaf">El navegador ha aceptado no borrar los datos de este sitio aunque necesite espacio.</p>}
+      {persisted === false && (
+        <div className="flex flex-wrap items-center gap-2">
+          <p className="text-muted">El navegador podría borrar los datos de este sitio si se queda sin espacio.</p>
+          <button className="btn-ghost text-sm" onClick={() => void requestPersistence().then((ok) => (setPersisted(ok), toast(ok ? "El navegador conservará tus datos." : "El navegador no lo ha aceptado: haz copias de vez en cuando.", ok ? "good" : "info")))}>
+            Pedir que los conserve
+          </button>
+        </div>
+      )}
+      {supported ? (
+        <div className="flex flex-col gap-2">
+          <p className="text-muted">Copia automática: elige un archivo (por ejemplo, en una carpeta que sincronices con la nube) y el juego lo actualizará unos segundos después de cada cambio.</p>
+          <div className="flex flex-wrap gap-2">
+            {perm === "none" && (
+              <button
+                className="btn-sky text-sm"
+                onClick={async () => {
+                  try {
+                    await chooseBackupFile();
+                    setPerm(await backupPermission());
+                    if (await writeNow()) toast("Copia automática activada.", "good");
+                  } catch (e) {
+                    if (!(e instanceof DOMException && e.name === "AbortError")) toast(`No se pudo elegir el archivo: ${e instanceof Error ? e.message : String(e)}`, "bad");
+                  }
+                }}
+              >
+                Activar copia automática
+              </button>
+            )}
+            {perm === "prompt" && (
+              <button className="btn-sky text-sm" onClick={async () => (setPerm(await backupPermission(true)), await writeNow())}>
+                Reanudar copia automática
+              </button>
+            )}
+            {perm !== "none" && (
+              <button className="btn-ghost text-sm" onClick={async () => (await forgetBackupFile(), setPerm("none"))}>
+                Desactivar copia automática
+              </button>
+            )}
+          </div>
+          {perm === "granted" && <p className="text-leaf">Copia automática activa.</p>}
+          {perm === "prompt" && <p className="text-muted">El navegador pide permiso de nuevo para escribir en el archivo.</p>}
+          {perm === "denied" && <p className="text-ember">El navegador no permite escribir en el archivo elegido.</p>}
+        </div>
+      ) : (
+        <p className="text-muted">Tu navegador no permite la copia automática a un archivo (Chrome y Edge de escritorio sí): exporta el progreso de vez en cuando.</p>
+      )}
+    </div>
+  );
+}
+
+/** Optional tutor: the learner's own Anthropic API key, kept only in this browser (see tutor.ts). */
+function TutorSection() {
+  const { toast } = useGame();
+  const [saved, setSaved] = useState(() => Boolean(tutorKey()));
+  const [key, setKey] = useState("");
+  return (
+    <section className="px-panel p-4 flex flex-col gap-3" data-testid="tutor-settings">
+      <h2 className="font-bold">Tutor opcional</h2>
+      <p className="text-sm text-muted">
+        En cada misión puedes preguntar a un tutor (Claude, de Anthropic) que te da pistas sin darte la solución. Funciona con tu propia clave de la API de Anthropic, que se crea en console.anthropic.com; cada pregunta se cobra en tu cuenta según su tarifa.
+      </p>
+      <ul className="text-sm text-muted list-disc pl-5">
+        <li>La clave se guarda solo en este navegador y se envía únicamente a la API de Anthropic. Quien use este navegador con tu usuario podría leerla: no la guardes en un ordenador compartido.</li>
+        <li>Al preguntar se envían el enunciado de la misión, tu código, el último resultado y tu pregunta. La solución de referencia no se envía.</li>
+        <li>El juego funciona igual sin tutor.</li>
+      </ul>
+      {saved ? (
+        <div className="flex flex-wrap items-center gap-2">
+          <span className="text-sm text-leaf">Tutor activado.</span>
+          <button className="btn-ghost text-sm" onClick={() => (setTutorKey(null), setSaved(false), toast("Clave borrada de este navegador.", "info"))}>
+            Borrar la clave
+          </button>
+        </div>
+      ) : (
+        <form
+          className="flex flex-wrap items-end gap-2"
+          onSubmit={(e) => {
+            e.preventDefault();
+            if (!/^sk-ant-\S{10,}$/.test(key.trim())) return toast("Eso no parece una clave de la API de Anthropic (empiezan por sk-ant-).", "bad");
+            setTutorKey(key);
+            setKey("");
+            setSaved(Boolean(tutorKey()));
+            toast(tutorKey() ? "Tutor activado." : "No se pudo guardar la clave en este navegador.", tutorKey() ? "good" : "bad");
+          }}
+        >
+          <label className="text-sm flex flex-col gap-1 flex-1 min-w-48">
+            Clave de la API de Anthropic
+            <input className="input font-mono" type="password" autoComplete="off" spellCheck={false} value={key} onChange={(e) => setKey(e.target.value)} />
+          </label>
+          <button className="btn-sky" type="submit" disabled={!key.trim()}>
+            Activar tutor
+          </button>
+        </form>
+      )}
+    </section>
+  );
+}
+
+/** Opinions given in the missions, exported for a pilot test (see docs/PILOTO.md). */
+function PilotSection() {
+  const { state } = useGame();
+  const rows = feedbackRows(state, MISSIONS);
+  return (
+    <section className="px-panel p-4 flex flex-col gap-3" data-testid="pilot">
+      <h2 className="font-bold">Prueba piloto: tus opiniones</h2>
+      <p className="text-sm text-muted">
+        Al final de cada misión puedes decir si la explicación fue clara, si el reto fue difícil y dónde te atascaste. Aquí se descargan esas opiniones junto con las comprobaciones y pistas que usaste en cada misión, para compartirlas con quien organiza la prueba. No se envía nada por sí solo.
+      </p>
+      <p className="text-sm">{rows.length === 0 ? "Todavía no has dado tu opinión sobre ninguna misión." : `Opiniones guardadas: ${rows.length}.`}</p>
+      <div className="flex flex-wrap gap-2">
+        <button className="btn-sky" disabled={!rows.length} onClick={() => downloadBlob(`opiniones-python-quest-${dayKey()}.csv`, new Blob([feedbackCsv(rows)], { type: "text/csv;charset=utf-8" }))}>
+          Descargar opiniones (.csv)
+        </button>
+        <button className="btn-ghost" disabled={!rows.length} onClick={() => downloadText(`opiniones-python-quest-${dayKey()}.json`, JSON.stringify(rows, null, 2), "application/json")}>
+          Descargar opiniones (.json)
+        </button>
+      </div>
+    </section>
+  );
+}
+
 /** Saves ``blob`` as a file through a temporary object URL. */
 function downloadBlob(name: string, blob: Blob) {
   const a = document.createElement("a");
@@ -587,6 +737,7 @@ export function Settings() {
             onClick={() => {
               const json = exportSave(state);
               setExported(json);
+              recordBackup();
               try {
                 const blob = new Blob([json], { type: "application/json" });
                 const a = document.createElement("a");
@@ -635,6 +786,7 @@ export function Settings() {
             </button>
           </div>
         )}
+        <BackupPanel />
         <details>
           <summary className="cursor-pointer text-sm text-sky">Pegar un progreso exportado</summary>
           <PasteImport onImport={doImport} />
@@ -647,6 +799,10 @@ export function Settings() {
           </ul>
         )}
       </section>
+
+      <PilotSection />
+
+      <TutorSection />
 
       <OfflineSection />
 

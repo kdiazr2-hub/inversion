@@ -48,6 +48,7 @@ export function sanitize(raw: unknown, content: Content, now = new Date()): Impo
   const isDone = (id: string) => Boolean(s.missions[id]?.done);
   s.attempts = s.attempts.filter((a) => known.has(a.m) && a.at <= nowIso);
   s.quizzes = s.quizzes.filter((q) => known.has(q.m) && q.at <= nowIso);
+  if (s.feedback) s.feedback = Object.fromEntries(Object.entries(s.feedback).filter(([id, f]) => known.has(id) && f.at <= nowIso));
   const before = s.reviews.length;
   s.reviews = s.reviews.filter((r) => isDone(r.m) && r.at <= nowIso && r.at >= (s.missions[r.m]!.done as string));
   if (s.reviews.length !== before) warnings.push(`Se descartaron ${before - s.reviews.length} repasos incoherentes.`);

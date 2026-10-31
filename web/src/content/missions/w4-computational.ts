@@ -58,7 +58,7 @@ print(round(t, 6), round(stats.ttest_ind(a, b, equal_var=False).statistic, 6))`,
         "Grupo 2.",
         "Error estándar de la diferencia: cada varianza dividida por su n.",
         "Estadístico t: diferencia de medias en unidades de error estándar.",
-        "Los dos valores coinciden (3.630918): la fórmula es la que usa SciPy con equal_var=False.",
+        "Los dos valores coinciden (3.7255): la fórmula es la que usa SciPy con equal_var=False.",
       ],
     },
     challenge: [
@@ -276,7 +276,7 @@ print(beta.round(3), round(1 - (residuos ** 2).sum() / ((y - y.mean()) ** 2).sum
         "Matriz de diseño: columna de unos (intercepto) y x.",
         "Ecuaciones normales resueltas sin invertir.",
         "Residuos: lo que el modelo no explica.",
-        "β ≈ [0.05, 1.99] y R² ≈ 0,998.",
+        "β ≈ [0.05, 1.99] y R² ≈ 0,997.",
       ],
     },
     challenge: [

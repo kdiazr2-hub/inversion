@@ -1116,7 +1116,7 @@ rng = np.random.default_rng(0)
 z = rng.normal(size=(300, 1))
 X = np.hstack([z, 2 * z + rng.normal(0, 0.1, (300, 1)), rng.normal(size=(300, 1))])
 print(PCA().fit(X).explained_variance_ratio_.round(3))`,
-      lines: ["NumPy.", "PCA.", "Semilla.", "Una variable latente.", "Dos columnas casi redundantes y una independiente.", "La primera componente explica ~83 %: las dos columnas redundantes se resumen en una."],
+      lines: ["NumPy.", "PCA.", "Semilla.", "Una variable latente.", "Dos columnas casi redundantes y una independiente.", "La primera componente explica ~86 %: las dos columnas redundantes se resumen en una."],
     },
     challenge: [
       "El código inicial genera `X` con 4 grupos en 6 dimensiones (`make_blobs`).",
