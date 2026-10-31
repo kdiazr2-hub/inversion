@@ -46,7 +46,8 @@ export const WORLDS: World[] = [
       "Complejidad algorítmica",
       "Estructuras de datos",
       "Type hints y documentación",
-      "Git y GitHub (fuera del navegador)",
+      "Fuera del navegador: terminal, pip y entornos virtuales",
+      "Git y GitHub",
     ],
     unlock: [{ world: "w1", fraction: 0.6 }],
     certificate: {

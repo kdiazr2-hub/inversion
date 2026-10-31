@@ -15,6 +15,7 @@ const NAV: { path: string; label: string; icon: string; main?: boolean }[] = [
   { path: "progreso", label: "Progreso", icon: "chart" },
   { path: "inventario", label: "Inventario", icon: "coin" },
   { path: "portafolio", label: "Portafolio", icon: "table" },
+  { path: "entorno", label: "En tu ordenador", icon: "spark" },
   { path: "certificados", label: "Certificados", icon: "scale" },
   { path: "ajustes", label: "Ajustes", icon: "gear" },
 ];

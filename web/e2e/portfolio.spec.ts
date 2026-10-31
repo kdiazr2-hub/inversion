@@ -1,5 +1,6 @@
-// The Portfolio lets the learner download a finished project as a .py script and its data files.
+// The Portfolio lets the learner download a finished project as a .zip, a .py script and its data files.
 import { expect, test } from "@playwright/test";
+import { execFileSync } from "node:child_process";
 import { readFileSync } from "node:fs";
 
 interface M {
@@ -45,6 +46,18 @@ test("el portafolio descarga el código y los datos de un proyecto", async ({ pa
   expect(text.startsWith("# Proyecto progresivo: el servicio de la torre\n")).toBe(true);
   expect(text).toContain("# Servicio probado y vigilado.");
   expect(text.endsWith(`\n\n${last.solution}\n`)).toBe(true);
+
+  // The .zip is read with Python's zipfile, which also checks every CRC.
+  const [archive] = await Promise.all([page.waitForEvent("download"), item.getByRole("button", { name: "Descargar proyecto (.zip)" }).click()]);
+  expect(archive.suggestedFilename()).toBe("proyecto-progresivo-el-servicio-de-la-torre.zip");
+  const read = "import json, sys, zipfile\nz = zipfile.ZipFile(sys.argv[1])\nassert z.testzip() is None\nprint(json.dumps({n: z.read(n).decode() for n in z.namelist()}))";
+  const files = JSON.parse(execFileSync("python3", ["-c", read, (await archive.path())!], { encoding: "utf-8" })) as Record<string, string>;
+  const folder = "proyecto-progresivo-el-servicio-de-la-torre/";
+  expect(Object.keys(files).sort()).toEqual([".gitignore", "README.md", "clientes.csv", "proyecto_progresivo_el_servicio_de_la_torre.py", "requirements.txt"].map((f) => folder + f).sort());
+  expect(files[`${folder}proyecto_progresivo_el_servicio_de_la_torre.py`]).toBe(text);
+  expect(files[`${folder}clientes.csv`]).toBe(last.files!["clientes.csv"]);
+  expect(files[`${folder}requirements.txt`]).toContain("scikit-learn==1.7.0\n");
+  expect(files[`${folder}README.md`]).toContain("python -m pip install -r requirements.txt");
 
   const [data] = await Promise.all([page.waitForEvent("download"), item.getByRole("button", { name: "Descargar clientes.csv" }).click()]);
   expect(data.suggestedFilename()).toBe("clientes.csv");

@@ -4,6 +4,7 @@ import type { Mission } from "./types";
 import { W1_A } from "./missions/w1-basics-a";
 import { W1_B } from "./missions/w1-basics-b";
 import { W2 } from "./missions/w2-logic";
+import { W2_ENTORNO } from "./missions/w2-entorno";
 import { PROJ_CALCULADORA } from "./missions/proj-calculadora";
 import { PROJ_GASTOS } from "./missions/proj-gastos";
 import { PROJ_PREGUNTAS } from "./missions/proj-preguntas";
@@ -42,4 +43,4 @@ import { W9_EXTRA } from "./missions/w9-extra";
 import { W9_VISION_AGENTES } from "./missions/w9-vision-agentes";
 
 /** Every mission in curriculum order. New mission files only need to be added here (then run `npm run catalog`). */
-export const MISSIONS: Mission[] = [...W1_A, ...W1_B, ...PROJ_PREGUNTAS, ...W2, ...PROJ_CALCULADORA, ...W3.filter((m) => m.kind !== "project"), ...W3_EXTRA, ...W3.filter((m) => m.kind === "project"), ...PROJ_GASTOS, ...W4_A, ...W4_MATH, ...W4_B, ...W4_C.filter((m) => m.kind !== "project"), ...W4_COMP, ...W4_C.filter((m) => m.kind === "project"), ...PROJ_ENSAYO, ...PROJ_PROBABILIDADES, ...PROJ_OBSERVATORIO, ...PROJ_EXPLORADOR, ...PROJ_ARBOLES, ...W5.filter((m) => m.kind !== "project"), ...W5_EXTRA, ...W5.filter((m) => m.kind === "project"), ...PROJ_SENSORES, ...PROJ_PLANTA, ...W6.filter((m) => m.kind !== "project"), ...W6_EXTRA, ...W6_EVAL, ...W6.filter((m) => m.kind === "project"), ...PROJ_VIVIENDAS, ...W7, ...W7_EXTRA, ...PROJ_TEXTO, ...PROJ_ORACULO, ...W8, ...W8_EXTRA, ...W8_ASYNC, ...PROJ_SERVICIO, ...W9, ...W9_EXTRA, ...W9_VISION_AGENTES, ...PROJ_DEMANDA, ...PROJ_CINE, ...PROJ_PENDULO];
+export const MISSIONS: Mission[] = [...W1_A, ...W1_B, ...PROJ_PREGUNTAS, ...W2, ...W2_ENTORNO, ...PROJ_CALCULADORA, ...W3.filter((m) => m.kind !== "project"), ...W3_EXTRA, ...W3.filter((m) => m.kind === "project"), ...PROJ_GASTOS, ...W4_A, ...W4_MATH, ...W4_B, ...W4_C.filter((m) => m.kind !== "project"), ...W4_COMP, ...W4_C.filter((m) => m.kind === "project"), ...PROJ_ENSAYO, ...PROJ_PROBABILIDADES, ...PROJ_OBSERVATORIO, ...PROJ_EXPLORADOR, ...PROJ_ARBOLES, ...W5.filter((m) => m.kind !== "project"), ...W5_EXTRA, ...W5.filter((m) => m.kind === "project"), ...PROJ_SENSORES, ...PROJ_PLANTA, ...W6.filter((m) => m.kind !== "project"), ...W6_EXTRA, ...W6_EVAL, ...W6.filter((m) => m.kind === "project"), ...PROJ_VIVIENDAS, ...W7, ...W7_EXTRA, ...PROJ_TEXTO, ...PROJ_ORACULO, ...W8, ...W8_EXTRA, ...W8_ASYNC, ...PROJ_SERVICIO, ...W9, ...W9_EXTRA, ...W9_VISION_AGENTES, ...PROJ_DEMANDA, ...PROJ_CINE, ...PROJ_PENDULO];

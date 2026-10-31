@@ -6,7 +6,7 @@ on:
 
 jobs:
   web:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     defaults:
       run:
         working-directory: web
@@ -23,7 +23,7 @@ jobs:
       - run: npm run build
 
   contenido:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v7
       - uses: actions/setup-python@v7
@@ -43,7 +43,7 @@ jobs:
     # Runs every mission in the real browser interpreter (WebAssembly), first from Node and then
     # through the game's interface in Chromium. The full Pyodide distribution (~350 MB) is cached
     # between runs.
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     env:
       PYODIDE_VERSION: "0.28.3"
     steps:
