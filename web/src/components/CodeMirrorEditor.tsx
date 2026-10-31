@@ -16,7 +16,7 @@ import {
   placeholder as cmPlaceholder,
 } from "@codemirror/view";
 import { tags as t } from "@lezer/highlight";
-import { useEffect, useRef } from "react";
+import { useEffect, useId, useRef } from "react";
 import { EDITOR_THEMES, type CodeEditorProps } from "./editorThemes";
 
 const errorLineDeco = Decoration.line({ class: "cm-errorLine" });
@@ -56,6 +56,7 @@ function themeExtensions(name: string, fontSize: number) {
 
 export function CodeMirrorEditor({ value, onChange, onRun, onCheck, theme = "noche", fontSize = 15, errorLine, label, minHeight = 220, placeholder, readOnly }: CodeEditorProps) {
   const host = useRef<HTMLDivElement>(null);
+  const hintId = useId();
   const view = useRef<EditorView | null>(null);
   const themeComp = useRef(new Compartment());
   const errorComp = useRef(new Compartment());
@@ -87,7 +88,7 @@ export function CodeMirrorEditor({ value, onChange, onRun, onCheck, theme = "noc
           python(),
           keymap.of([...closeBracketsKeymap, ...defaultKeymap, ...historyKeymap, ...completionKeymap, indentWithTab]),
           EditorView.lineWrapping,
-          EditorView.contentAttributes.of({ "aria-label": label }),
+          EditorView.contentAttributes.of({ "aria-label": label, "aria-describedby": hintId }),
           EditorState.readOnly.of(Boolean(readOnly)),
           cmPlaceholder(placeholder ?? ""),
           themeComp.current.of(themeExtensions(theme, fontSize)),
@@ -125,5 +126,13 @@ export function CodeMirrorEditor({ value, onChange, onRun, onCheck, theme = "noc
     v.dispatch({ effects: errorComp.current.reconfigure(ext) });
   }, [errorLine, value]);
 
-  return <div ref={host} className="h-full overflow-hidden rounded-[2px]" style={{ minHeight }} data-testid="code-editor" />;
+  return (
+    <div className="group relative h-full">
+      <div ref={host} className="h-full overflow-hidden rounded-[2px]" style={{ minHeight }} data-testid="code-editor" />
+      {/* Tab indents inside the editor; keyboard users leave it with Escape and then Tab. */}
+      <p id={hintId} className="hidden group-focus-within:block absolute right-2 bottom-1 z-10 pointer-events-none text-xs px-2 py-0.5 rounded-[2px] bg-ink/90 text-muted">
+        {readOnly ? "Esc y después Tab: salir del editor" : "Ctrl (⌘ en Mac) + Intro: ejecutar · Esc y después Tab: salir del editor"}
+      </p>
+    </div>
+  );
 }

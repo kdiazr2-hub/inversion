@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { missionById, MISSIONS, WORLDS } from "../content";
 import { text } from "../content/types";
 import { worldById } from "../content/worlds";
@@ -5,7 +6,9 @@ import { Markdown } from "../components/Markdown";
 import { PixelIcon } from "../components/pixel";
 import { Scene } from "../components/Scene";
 import { isMissionUnlocked, isWorldUnlocked, misconceptionStats, MISCONCEPTIONS, recommendNext, worldProgress } from "../engine/derive";
+import { needsBackupReminder, readBackupInfo, recordBackup, snoozeReminder } from "../engine/backup";
 import { dayKey } from "../engine/state";
+import { exportSave } from "../engine/storage";
 import { CONTENT, useGame } from "../engine/store";
 import { href } from "../router";
 
@@ -18,6 +21,36 @@ function dailyQuest(state: ReturnType<typeof useGame>["state"]) {
   for (const c of k) h = (h * 31 + c.charCodeAt(0)) >>> 0;
   // Prefer the first missions of the queue so the quest is reachable today.
   return pool[h % Math.min(pool.length, 3)];
+}
+
+/** Reminds the learner to save a copy once there is progress worth keeping and none is recent. */
+function BackupReminder() {
+  const { state } = useGame();
+  const [info, setInfo] = useState(readBackupInfo);
+  if (!needsBackupReminder(state, info)) return null;
+  const download = () => {
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(new Blob([exportSave(state)], { type: "application/json" }));
+    a.download = `python-quest-${dayKey()}.json`;
+    a.click();
+    setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+    setInfo(recordBackup());
+  };
+  return (
+    <div className="px-panel-gold p-4 flex flex-col sm:flex-row sm:items-center gap-3" role="region" aria-label="Copia de seguridad" data-testid="backup-reminder">
+      <p className="flex-1 text-sm">
+        {info.at ? `Tu última copia es del ${new Date(info.at).toLocaleDateString("es")}.` : "Todavía no has guardado ninguna copia de tu progreso."} Tu progreso vive solo en este navegador: si se borran sus datos, se pierde. Descarga una copia o activa la copia automática en <a className="text-sky underline" href={href("ajustes")}>Ajustes</a>.
+      </p>
+      <div className="flex gap-2 shrink-0">
+        <button className="btn-gold text-sm" onClick={download}>
+          Descargar copia
+        </button>
+        <button className="btn-ghost text-sm" onClick={() => setInfo(snoozeReminder())}>
+          En otro momento
+        </button>
+      </div>
+    </div>
+  );
 }
 
 export function Home() {
@@ -33,6 +66,7 @@ export function Home() {
   return (
     <div className="flex flex-col gap-6">
       <h1 className="sr-only">Panel principal</h1>
+      <BackupReminder />
       <div className="grid lg:grid-cols-[minmax(0,1.6fr)_minmax(0,1fr)] gap-6">
         <div className="px-panel overflow-hidden flex flex-col">
           <Scene theme={nextWorld.theme} seed={4} hero={state.profile?.avatar} heroAt={0.2} label={`Tu personaje en ${nextWorld.name}`} />

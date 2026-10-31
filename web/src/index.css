@@ -184,3 +184,10 @@ h3 {
 .cm-scroller {
   font-family: "JetBrains Mono", ui-monospace, monospace !important;
 }
+
+/* A grid without a base column template gets one column that can shrink: otherwise a long
+   unbreakable line (a truncated mission title) widens the implicit column past narrow screens.
+   :where() keeps the specificity at zero, so responsive grid-cols-* utilities still apply. */
+:where(.grid:not([class^="grid-cols-"]):not([class*=" grid-cols-"])) {
+  grid-template-columns: minmax(0, 1fr);
+}

@@ -4,7 +4,9 @@ import { createContext, useCallback, useContext, useEffect, useMemo, useRef, use
 import { MISSIONS, WORLDS } from "../content";
 import { recordUnlocks, summarize, type Content, type Summary } from "./derive";
 import { newSave, type SaveState } from "./state";
-import { loadSave, persist } from "./storage";
+import { exportSave, loadSave, persist } from "./storage";
+import { recordBackup, requestPersistence } from "./backup";
+import { autoBackupSupported, writeBackupFile } from "../backupFile";
 
 export const CONTENT: Content = { missions: MISSIONS, worlds: WORLDS };
 
@@ -71,6 +73,24 @@ export function GameProvider({ children }: { children: ReactNode }) {
     if (found.length) setCelebrations((c) => [...c, ...found]);
     prev.current = { summary, state };
   }, [state, summary]);
+
+  // Once there is a profile, ask the browser not to evict the site's data (it may say no).
+  const askedPersist = useRef(false);
+  useEffect(() => {
+    if (!state.profile || askedPersist.current) return;
+    askedPersist.current = true;
+    void requestPersistence();
+  }, [state.profile]);
+
+  // Automatic copy to the learner's file, if they chose one (see backupFile.ts), a few seconds
+  // after the last change.
+  useEffect(() => {
+    if (!state.profile || !autoBackupSupported()) return;
+    const id = setTimeout(() => {
+      void writeBackupFile(exportSave(state)).then((ok) => ok && recordBackup());
+    }, 4000);
+    return () => clearTimeout(id);
+  }, [state]);
 
   const update = useCallback((fn: (s: SaveState) => SaveState) => setState((s) => recordUnlocks(fn(s), CONTENT)), []);
   const replace = useCallback((imported: SaveState) => {

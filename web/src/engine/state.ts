@@ -71,6 +71,14 @@ export const DrillLogSchema = z.object({
   review: z.string().max(64).optional(),
 });
 
+/** The learner's own opinion of a mission, for pilot tests; it never leaves the browser unless exported. */
+export const FeedbackSchema = z.object({
+  at: isoTime,
+  clarity: z.enum(["clara", "regular", "confusa"]).optional(),
+  difficulty: z.enum(["facil", "justa", "dificil"]).optional(),
+  stuck: z.string().max(2000).optional(),
+});
+
 export const ActivitySchema = z.object({
   ms: z.number().min(0).max(86_400_000),
   runs: z.number().int().min(0),
@@ -96,6 +104,7 @@ export const SaveSchema = z.object({
   reviews: z.array(ReviewLogSchema).max(20_000),
   /** Practice gym solves (absent in saves made before the gym existed). */
   drills: z.array(DrillLogSchema).max(20_000).optional(),
+  feedback: z.record(z.string().max(64), FeedbackSchema).optional(),
   activity: z.record(isoDate, ActivitySchema),
   owned: z.array(z.string().max(32)).max(200),
   labs: z.record(z.string().max(32), z.number().int().min(0)),
@@ -121,6 +130,7 @@ export type Attempt = z.infer<typeof AttemptSchema>;
 export type QuizLog = z.infer<typeof QuizLogSchema>;
 export type ReviewLog = z.infer<typeof ReviewLogSchema>;
 export type DrillLog = z.infer<typeof DrillLogSchema>;
+export type Feedback = z.infer<typeof FeedbackSchema>;
 export type Settings = z.infer<typeof SettingsSchema>;
 export type SaveState = z.infer<typeof SaveSchema>;
 

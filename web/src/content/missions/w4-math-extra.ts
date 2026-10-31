@@ -623,7 +623,7 @@ print(area, "frente al valor exacto", 3 ** 3 / 3)`,
         "Ancho de cada trozo: 0,75.",
         "Valores de f en los 5 extremos de los trozos.",
         "Regla de los trapecios: los extremos cuentan la mitad.",
-        "9.140625 frente al valor exacto 9.0: sobreestima porque la curva es convexa.",
+        "9.28125 frente al valor exacto 9.0: sobreestima porque la curva es convexa.",
       ],
     },
     challenge: [
